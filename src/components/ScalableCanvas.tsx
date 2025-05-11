@@ -1,8 +1,8 @@
 "use client";
 import React, { useRef, useState, useLayoutEffect, RefObject } from 'react';
 
-export const ScalableCanvas: React.FC<{
-  captureRef: RefObject<HTMLDivElement | null>;
+const ScalableCanvas: React.FC<{
+  captureRef?: RefObject<HTMLDivElement | null>;
   width?: number | string;
   height?: number | string;
   children: React.ReactNode;
@@ -10,29 +10,33 @@ export const ScalableCanvas: React.FC<{
 }> = ({ captureRef, width = '100%', height = '100%', children, className }) => {
   const [scale, setScale] = useState(1);
   const contentRef = useRef<HTMLDivElement>(null);
+  const internalRef = useRef<HTMLDivElement>(null);
+  
+  // Use the provided ref or fall back to internal ref
+  const containerRef = captureRef || internalRef;
 
   useLayoutEffect(() => {
     const scaleContent = () => {
-      if (!contentRef.current || !captureRef.current) return;
+      if (!contentRef.current || !containerRef.current) return;
       const el = contentRef.current;
       const prev = el.style.transform;
       el.style.transform = 'none';
       const contentWidth = el.scrollWidth;
       const contentHeight = el.scrollHeight;
       el.style.transform = prev;
-      const containerWidth = captureRef.current.clientWidth;
-      const containerHeight = captureRef.current.clientHeight;
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
       const ratio = Math.min(containerWidth / contentWidth, containerHeight / contentHeight);
       setScale(ratio);
     };
     scaleContent();
     window.addEventListener('resize', scaleContent);
     return () => window.removeEventListener('resize', scaleContent);
-  }, [children, captureRef]);
+  }, [children, containerRef]);
 
   return (
     <div
-      ref={captureRef}
+      ref={containerRef}
       style={{
         width: typeof width === 'number' ? `${width}px` : width,
         height: typeof height === 'number' ? `${height}px` : height,
