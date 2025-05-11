@@ -1,3 +1,9 @@
+# Classroom Guy
+
+**Work in progress. Contributions are welcome!**
+
+Classroom Guy is a SaaS platform that integrates with WhatsApp to automate classroom announcements, generate AI-powered calendar images, and manage group discussions for teachers, CRs, and students.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
