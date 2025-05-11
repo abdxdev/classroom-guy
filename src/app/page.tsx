@@ -1,70 +1,104 @@
 "use client";
 import React, { useRef } from 'react';
-import domtoimage from 'dom-to-image';
+import { handleExport } from '@/lib/utils';
 import ScalableCanvas from '@/components/ScalableCanvas';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Button } from '@/components/ui/button';
+
+enum TaskTag {
+  Assignment = "Assignment",
+  Quiz = "Quiz",
+  Mid = "Mid",
+  Final = "Final",
+  Project = "Project",
+  CCP = "CCP"
+}
+
+type ScheduleItem = {
+  date: string;
+  title: string;
+  tag: TaskTag;
+}
+
+const schedule: ScheduleItem[] = [
+  {
+    date: "10-01-2025",
+    title: "DAA",
+    tag: TaskTag.Assignment,
+  },
+  {
+    date: "10-01-2025",
+    title: "CN",
+    tag: TaskTag.Quiz,
+  },
+  {
+    date: "10-01-2025",
+    title: "ML",
+    tag: TaskTag.Project,
+  },
+  {
+    date: "10-01-2025",
+    title: "Final Exam",
+    tag: TaskTag.Final,
+  },
+  {
+    date: "10-01-2025",
+    title: "Final Exam",
+    tag: TaskTag.Final,
+  },
+  {
+    date: "10-01-2025",
+    title: "Final Exam",
+    tag: TaskTag.Final,
+  },
+]
 
 const frameSize = 640;
 
 export default function Home() {
   const captureRef = useRef<HTMLDivElement>(null);
 
-  const handleExport = async () => {
-    if (!captureRef.current) return;
-    const element = captureRef.current;
-    try {
-      const dataUrl = await domtoimage.toPng(element, {
-        quality: 1,
-      });
-      const link = document.createElement('a');
-      link.download = 'component.png';
-      link.href = dataUrl;
-      link.click();
-    } catch (error) {
-      console.error('Error exporting image:', error);
-    }
-  };
+  const content = (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Title</TableHead>
+          <TableHead>Tag</TableHead>
+          <TableHead>Date</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {schedule.map((item) => (
+          <TableRow key={item.title}>
+            <TableCell className="font-medium">{item.title}</TableCell>
+            <TableCell>{item.tag}</TableCell>
+            <TableCell>{item.date}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center h-screen justify-center">
       <ScalableCanvas
         captureRef={captureRef}
         width={frameSize}
         height={frameSize}
-        className='bg-amber-100'
+        className='bg-white border'
       >
-        <div 
-          className='flex flex-col w-full h-full p-4 bg-gray-100'
-        >
-          <div className="border border-gray-300 p-3 rounded bg-white">
-            <h3 className="font-bold mb-1">Item</h3>
-            <p>description</p>
-            <p>Additional information about the item.</p>
-          </div>
-          <div className="border border-gray-300 p-3 rounded bg-white">
-            <h3 className="font-bold mb-1">Item</h3>
-            <p>description</p>
-            <p>Additional information about the item.</p>
-          </div>
-          <div className="border border-gray-300 p-3 rounded bg-white">
-            <h3 className="font-bold mb-1">Item</h3>
-            <p>description</p>
-            <p>Additional information about the item.</p>
-          </div>
-          <div className="border border-gray-300 p-3 rounded bg-white">
-            <h3 className="font-bold mb-1">Item</h3>
-            <p>description</p>
-            <p>Additional information about the item.</p>
-          </div>
-          <div className="border border-gray-300 p-3 rounded bg-white">
-            <h3 className="font-bold mb-1">Item</h3>
-            <p>description</p>
-            <p>Additional information about the item.</p>
-          </div>
-        </div>
+        {content}
       </ScalableCanvas>
-      <button onClick={handleExport} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
+      <Button onClick={() => handleExport(captureRef)} className="mt-4 px-4 py-2 rounded">
         Export as PNG
-      </button>
+      </Button>
     </div>
   );
 }

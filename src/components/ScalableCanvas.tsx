@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useState, useLayoutEffect, RefObject } from 'react';
 
-const ScalableCanvas: React.FC<{
+export const ScalableCanvas: React.FC<{
   captureRef: RefObject<HTMLDivElement | null>;
   width?: number | string;
   height?: number | string;
