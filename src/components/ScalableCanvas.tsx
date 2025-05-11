@@ -1,35 +1,29 @@
 "use client";
-import React, { useRef, useState, useEffect, RefObject } from 'react';
+import React, { useRef, useState, useLayoutEffect, RefObject } from 'react';
 
 const ScalableCanvas: React.FC<{
   captureRef: RefObject<HTMLDivElement | null>;
   width?: number | string;
   height?: number | string;
   children: React.ReactNode;
-}> = ({ captureRef, width = '100%', height = '100%', children }) => {
+  className?: string;
+}> = ({ captureRef, width = '100%', height = '100%', children, className }) => {
   const [scale, setScale] = useState(1);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const scaleContent = () => {
       if (!contentRef.current || !captureRef.current) return;
-      const tempDiv = contentRef.current.cloneNode(true) as HTMLElement;
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.visibility = 'hidden';
-      tempDiv.style.transform = 'none';
-      tempDiv.style.width = 'auto';
-      tempDiv.style.height = 'auto';
-      document.body.appendChild(tempDiv);
-      const contentHeight = tempDiv.scrollHeight;
-      const contentWidth = tempDiv.scrollWidth;
-      const containerHeight = captureRef.current.clientHeight;
+      const el = contentRef.current;
+      const prev = el.style.transform;
+      el.style.transform = 'none';
+      const contentWidth = el.scrollWidth;
+      const contentHeight = el.scrollHeight;
+      el.style.transform = prev;
       const containerWidth = captureRef.current.clientWidth;
-      document.body.removeChild(tempDiv);
-      const heightRatio = containerHeight / contentHeight;
-      const widthRatio = containerWidth / contentWidth;
-      const newScale = Math.min(heightRatio, widthRatio) * 0.9;
-      const limitedScale = Math.min(Math.max(newScale, 0.1), 3);
-      setScale(limitedScale);
+      const containerHeight = captureRef.current.clientHeight;
+      const ratio = Math.min(containerWidth / contentWidth, containerHeight / contentHeight);
+      setScale(ratio);
     };
     scaleContent();
     window.addEventListener('resize', scaleContent);
@@ -42,17 +36,17 @@ const ScalableCanvas: React.FC<{
       style={{
         width: typeof width === 'number' ? `${width}px` : width,
         height: typeof height === 'number' ? `${height}px` : height,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
+      className={`relative ${className}`}
     >
       <div
         ref={contentRef}
-        className="p-4"
         style={{
-          width: '100%',
-          height: '100%',
           transform: `scale(${scale})`,
-          transformOrigin: 'center center',
-          display: 'inline-block',
         }}
       >
         {children}
