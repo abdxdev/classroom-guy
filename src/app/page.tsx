@@ -9,162 +9,127 @@ import { Button } from '@/components/ui/button';
 
 const TagConfig: TagConfigType = {
   Assignment: { title: "Assign.", bgColor: "bg-red-100", textColor: "text-red-700" },
+  Viva: { title: "Viva", bgColor: "bg-pink-100", textColor: "text-pink-700" },
   Quiz: { title: "Quiz", bgColor: "bg-blue-100", textColor: "text-blue-700" },
   Mid: { title: "Mid", bgColor: "bg-orange-100", textColor: "text-orange-700" },
   Final: { title: "Final", bgColor: "bg-purple-100", textColor: "text-purple-700" },
   Project: { title: "Proj.", bgColor: "bg-green-100", textColor: "text-green-700" },
   CCP: { title: "CCP", bgColor: "bg-yellow-100", textColor: "text-yellow-700" },
+  Other: { title: "Other", bgColor: "bg-gray-100", textColor: "text-gray-700" },
 }
 
-const schedule: ScheduleItem[] = [
-  // May 2025
+let schedule: ScheduleItem[] = [
+  // July 2025
   {
-    deadline: new Date(2025, 4, 12, 10, 30), // May 12, 2025, 10:30 AM
+    deadline: new Date(2025, 6, 5, 10, 30),
     title: "Data Structures",
-    tag: "Quiz",
+    tag: "Viva",
     notes: "Study binary trees and heaps. Room 301.",
   },
   {
-    deadline: new Date(2025, 4, 18, 23, 59), // May 18, 2025, 11:59 PM
+    deadline: new Date(2025, 6, 12, 23, 59),
     title: "Mobile App Development",
     tag: "Assignment",
     notes: "Submit UI wireframes and prototype.",
   },
   {
-    deadline: new Date(2025, 4, 25, 14, 0), // May 25, 2025, 2:00 PM
+    deadline: new Date(2025, 6, 15, 14, 0),
     title: "Database Systems",
     tag: "Mid",
     notes: "Covers normalization, SQL, and indexing.",
   },
   {
-    deadline: new Date(2025, 4, 28, 15, 0), // May 28, 2025, 3:00 PM
+    deadline: new Date(2025, 6, 28, 15, 0),
     title: "Software Engineering",
     tag: "Project",
     notes: "Final project demo - 15 min presentation.",
   },
 
-  // June 2025
+  // August 2025
   {
-    deadline: new Date(2025, 5, 5, 23, 59), // June 5, 2025, 11:59 PM
+    deadline: new Date(2025, 7, 5, 23, 59),
     title: "Artificial Intelligence",
     tag: "Assignment",
     notes: "Implement A* search algorithm for pathfinding.",
   },
   {
-    deadline: new Date(2025, 5, 10, 9, 0), // June 10, 2025, 9:00 AM
+    deadline: new Date(2025, 7, 10, 9, 0),
     title: "Computational Theory",
     tag: "Mid",
     notes: "Comprehensive exam - 3 hours.",
   },
   {
-    deadline: new Date(2025, 5, 22, 13, 30), // June 22, 2025, 1:30 PM
+    deadline: new Date(2025, 7, 15, 13, 30),
     title: "Network Security",
     tag: "CCP",
     notes: "Workshop on encryption and network protocols.",
   },
-
-  // July 2025
   {
-    deadline: new Date(2025, 6, 8, 17, 0), // July 8, 2025, 5:00 PM
+    deadline: new Date(2025, 7, 20, 10, 0),
+    title: "Machine Learning",
+    tag: "Project",
+    notes: "Neural network model deployment.",
+  },
+  {
+    deadline: new Date(2025, 7, 20, 14, 30),
+    title: "Web Security",
+    tag: "Assignment",
+    notes: "Penetration testing report submission.",
+  },
+
+  // September 2025
+  {
+    deadline: new Date(2025, 8, 5, 17, 0),
     title: "Cloud Computing",
     tag: "Project",
     notes: "Deploy microservices application to AWS.",
   },
   {
-    deadline: new Date(2025, 6, 12, 11, 15), // July 12, 2025, 11:15 AM
+    deadline: new Date(2025, 8, 10, 11, 15),
     title: "Human-Computer Interaction",
     tag: "Quiz",
     notes: "Covers usability principles and testing methods.",
   },
-
-  // August 2025
   {
-    deadline: new Date(2025, 7, 7, 10, 0), // August 7, 2025, 10:00 AM
-    title: "Computer Vision",
-    tag: "Mid",
-    notes: "Focus on feature extraction and object detection.",
+    deadline: new Date(2025, 8, 15, 9, 0),
+    title: "Cloud Computing",
+    tag: "Viva",
+    notes: "Architecture and scaling discussion.",
   },
   {
-    deadline: new Date(2025, 7, 14, 23, 59), // August 14, 2025, 11:59 PM
-    title: "Distributed Systems",
-    tag: "Assignment",
-    notes: "Implement a consensus algorithm.",
-  },
-  {
-    deadline: new Date(2025, 7, 14, 23, 59), // August 14, 2025, 11:59 PM
-    title: "Distributed Systems",
-    tag: "Assignment",
-    notes: "Implement a consensus algorithm.",
-  },
-  {
-    deadline: new Date(2025, 7, 14, 23, 59), // August 14, 2025, 11:59 PM
-    title: "Distributed Systems",
-    tag: "Assignment",
-    notes: "Implement a consensus algorithm.",
-  },
-  {
-    deadline: new Date(2025, 7, 14, 23, 59), // August 14, 2025, 11:59 PM
-    title: "Distributed Systems",
-    tag: "Assignment",
-    notes: "Implement a consensus algorithm.",
-  },
-  {
-    deadline: new Date(2025, 7, 14, 23, 59), // August 14, 2025, 11:59 PM
-    title: "Distributed Systems",
-    tag: "Assignment",
-    notes: "Implement a consensus algorithm.",
-  },
-  {
-    deadline: new Date(2025, 7, 14, 23, 59), // August 14, 2025, 11:59 PM
-    title: "Distributed Systems",
-    tag: "Assignment",
-    notes: "Implement a consensus algorithm.",
-  },
-  {
-    deadline: new Date(2025, 7, 14, 23, 59), // August 14, 2025, 11:59 PM
-    title: "Distributed Systems",
-    tag: "Assignment",
-    notes: "Implement a consensus algorithm.",
-  },
-
-  // September 2025
-  {
-    deadline: new Date(2025, 8, 3, 14, 30), // September 3, 2025, 2:30 PM
-    title: "Natural Language Processing",
+    deadline: new Date(2025, 8, 15, 9, 0),
+    title: "System Design",
     tag: "Quiz",
-    notes: "Text classification and sentiment analysis.",
+    notes: "Distributed systems implementation.",
   },
   {
-    deadline: new Date(2025, 8, 3, 14, 30), // September 3, 2025, 2:30 PM
-    title: "Natural Language Processing",
-    tag: "Quiz",
-    notes: "Text classification and sentiment analysis.",
+    deadline: new Date(2025, 8, 15, 14, 30),
+    title: "Web Development",
+    tag: "Project",
+    notes: "Full-stack application deployment.",
   },
   {
-    deadline: new Date(2025, 8, 3, 14, 30), // September 3, 2025, 2:30 PM
-    title: "Natural Language Processing",
-    tag: "Quiz",
-    notes: "Text classification and sentiment analysis.",
-  },
-  {
-    deadline: new Date(2025, 8, 3, 14, 30), // September 3, 2025, 2:30 PM
-    title: "Natural Language Processing",
-    tag: "Quiz",
-    notes: "Text classification and sentiment analysis.",
-  },
+    deadline: new Date(2025, 8, 25, 10, 0),
+    title: "Computer Graphics",
+    tag: "Final",
+    notes: "Ray tracing and OpenGL implementations.",
+  }
 ]
 
-const frameSize = 640;
+// Sort schedule by deadline date
+const sortedSchedule = [...schedule].sort((a, b) => 
+  a.deadline.getTime() - b.deadline.getTime()
+);
 
 export default function Home() {
   const captureRef = useRef<HTMLDivElement>(null);
 
+  const frameSize = 640;
   const minCalendars = 1;
   const maxCalendars = 3;
-  const maxItems = 14;
-  
-  // Apply limit to schedule if maxItems > 0
-  const displayedSchedule = maxItems > 0 ? schedule.slice(0, maxItems) : schedule;
+  const maxItems = 15;
+
+  const displayedSchedule = maxItems > 0 ? sortedSchedule.slice(0, maxItems) : sortedSchedule;
 
   const content = (
     <div className="flex flex-col items-center max-w-4xl mx-auto m-4 justify-between">
@@ -173,6 +138,7 @@ export default function Home() {
       {displayedSchedule.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 px-4">
           <div className="text-6xl mb-6">🎉</div>
+          {/* <Logo className="w-20 mb-6" /> */}
           <h2 className="text-2xl font-semibold mb-3">No Tasks Scheduled!</h2>
           <p className="text-gray-500 text-center">Enjoy your free time while it lasts!</p>
         </div>
@@ -185,8 +151,8 @@ export default function Home() {
             maxCalendars={maxCalendars}
           />
           <div className="w-0.5 bg-gray-200" />  {/* line */}
-          <ScheduleTable 
-            schedule={displayedSchedule} 
+          <ScheduleTable
+            schedule={displayedSchedule}
             tagConfig={TagConfig}
             maxItems={maxItems}
           />

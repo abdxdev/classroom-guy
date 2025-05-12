@@ -10,8 +10,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Re-export these types from page.tsx
-export type TaskTagType = 'Assignment' | 'Quiz' | 'Mid' | 'Final' | 'Project' | 'CCP';
+export type TagConfigType = {
+  [key in string]: {
+    title: string;
+    bgColor: string;
+    textColor: string;
+  }
+};
+
+export type TaskTagType = string;
 
 export type ScheduleItem = {
   deadline: Date;
@@ -20,24 +27,17 @@ export type ScheduleItem = {
   notes?: string;
 };
 
-export type TagConfigType = Record<TaskTagType, { 
-  title: string; 
-  bgColor: string; 
-  textColor: string 
-}>;
-
 type ScheduleTableProps = {
   schedule: ScheduleItem[];
   tagConfig: TagConfigType;
   maxItems?: number;
 };
 
-export default function ScheduleTable({ 
-  schedule, 
+export default function ScheduleTable({
+  schedule,
   tagConfig,
-  maxItems = 0 
+  maxItems = 0
 }: ScheduleTableProps) {
-  // Apply limit to schedule if maxItems > 0
   const displayedSchedule = maxItems > 0 ? schedule.slice(0, maxItems) : schedule;
 
   if (displayedSchedule.length === 0) {
@@ -62,15 +62,15 @@ export default function ScheduleTable({
           <TableRow key={index}>
             <TableCell>
               {item.deadline && (
-                ['Assignment', 'Project', 'CCP'].includes(item.tag) 
+                ['Assignment', 'Project', 'CCP'].includes(item.tag)
                   ? (
-                      <div>
-                        {format(item.deadline, 'MMM dd, yyyy')}
-                        <div className="text-xs text-gray-500 mt-0">
-                          {format(item.deadline, 'hh:mm a')}
-                        </div>
+                    <div>
+                      {format(item.deadline, 'MMM dd, yyyy')}
+                      <div className="text-xs text-gray-500 mt-0">
+                        {format(item.deadline, 'hh:mm a')}
                       </div>
-                    )
+                    </div>
+                  )
                   : format(item.deadline, 'MMM dd, yyyy')
               )}
             </TableCell>

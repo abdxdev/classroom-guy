@@ -11,6 +11,7 @@ Classroom Guy is a SaaS platform that integrates with WhatsApp to automate class
 ## Example
 
 ![alt text](screenshots/screenshot_1.png)
+![alt text](screenshots/screenshot_2.png)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

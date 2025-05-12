@@ -11,8 +11,7 @@ const ScalableCanvas: React.FC<{
   const [scale, setScale] = useState(1);
   const contentRef = useRef<HTMLDivElement>(null);
   const internalRef = useRef<HTMLDivElement>(null);
-  
-  // Use the provided ref or fall back to internal ref
+
   const containerRef = captureRef || internalRef;
 
   useLayoutEffect(() => {

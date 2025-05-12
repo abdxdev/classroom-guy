@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Calendar } from "@/components/ui/calendar";
-import { 
-  format, 
-  parse, 
-  addMonths, 
-  startOfMonth, 
-  differenceInMonths 
+import {
+  format,
+  parse,
+  addMonths,
+  startOfMonth,
+  differenceInMonths
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -28,30 +28,56 @@ export interface DateHighlight {
 interface MonthlyCalendarsProps<T = ScheduleItem> {
   schedule?: T[];
   tagConfig?: Record<string, { bgColor: string; textColor: string; title: string }>;
-  
+
   highlights?: DateHighlight[];
-  
+
   startDate?: Date | string;
   endDate?: Date | string;
   dateFormat?: string;
-  
+
   minCalendars?: number;
   maxCalendars?: number;
   showNavigation?: boolean;
-  
+
   className?: string;
   calendarClassName?: string;
-  
+
   renderDay?: (date: Date, highlights: DateHighlight[]) => React.ReactNode;
-  
+
   getDateFromItem?: (item: T) => string | Date;
   getHighlightFromItem?: (item: T, date: Date) => DateHighlight;
 }
 
-export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>({ 
+const getTailwindColor = (className?: string): string => {
+  if (!className || typeof window === 'undefined') return 'transparent';
+  
+  try {
+    const tempDiv = document.createElement('div');
+    tempDiv.className = className;
+    document.body.appendChild(tempDiv);
+    const bgColor = window.getComputedStyle(tempDiv).backgroundColor;
+    document.body.removeChild(tempDiv);
+    return bgColor;
+  } catch (error) {
+    console.warn('Error computing tailwind color:', error);
+    return 'transparent';
+  }
+};
+
+const useComputedColor = (className?: string) => {
+  const [color, setColor] = useState('transparent');
+
+  useEffect(() => {
+    setColor(getTailwindColor(className));
+  }, [className]);
+
+  return color;
+};
+
+export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>({
   schedule = [],
   tagConfig = {},
-  
+
   highlights = [],
   startDate,
   endDate,
@@ -62,7 +88,7 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
   className,
   calendarClassName,
   renderDay,
-  
+
   getDateFromItem = (item: T) => item.deadline,
   getHighlightFromItem = (item: T, date: Date) => ({
     date,
@@ -70,18 +96,18 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
     meta: item
   })
 }: MonthlyCalendarsProps<T>) {
-  
+
   const { dateHighlights, monthsToDisplay } = useMemo(() => {
     const highlightMap: Record<string, DateHighlight[]> = {};
     const allDates: Date[] = [];
-    
+
     highlights.forEach(highlight => {
-      const date = typeof highlight.date === 'string' 
-        ? parse(highlight.date, dateFormat, new Date()) 
+      const date = typeof highlight.date === 'string'
+        ? parse(highlight.date, dateFormat, new Date())
         : highlight.date;
-      
+
       const dateKey = format(date, 'yyyy-MM-dd');
-      
+
       if (!highlightMap[dateKey]) {
         highlightMap[dateKey] = [];
       }
@@ -89,36 +115,36 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
         ...highlight,
         date
       });
-      
+
       allDates.push(date);
     });
-    
+
     schedule.forEach(item => {
       const rawDate = getDateFromItem(item);
       if (!rawDate) return;
-      
+
       const date = typeof rawDate === 'string'
         ? parse(rawDate, dateFormat, new Date())
         : rawDate;
-      
+
       const dateKey = format(date, 'yyyy-MM-dd');
-      
+
       if (!highlightMap[dateKey]) {
         highlightMap[dateKey] = [];
       }
-      
+
       highlightMap[dateKey].push(getHighlightFromItem(item, date));
       allDates.push(date);
     });
-    
+
     let firstMonth: Date;
     let lastMonth: Date;
-    
+
     if (startDate && endDate) {
-      firstMonth = startOfMonth(typeof startDate === 'string' 
+      firstMonth = startOfMonth(typeof startDate === 'string'
         ? parse(startDate, dateFormat, new Date())
         : startDate);
-      
+
       lastMonth = startOfMonth(typeof endDate === 'string'
         ? parse(endDate, dateFormat, new Date())
         : endDate);
@@ -131,10 +157,10 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
       firstMonth = startOfMonth(currentDate);
       lastMonth = firstMonth;
     }
-    
+
     let monthDiff = differenceInMonths(lastMonth, firstMonth) + 1;
     monthDiff = Math.max(minCalendars, Math.min(maxCalendars, monthDiff));
-    
+
     return {
       dateHighlights: highlightMap,
       monthsToDisplay: Array.from({ length: monthDiff }, (_, i) =>
@@ -142,12 +168,12 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
       )
     };
   }, [
-    highlights, 
-    schedule, 
-    startDate, 
-    endDate, 
-    minCalendars, 
-    maxCalendars, 
+    highlights,
+    schedule,
+    startDate,
+    endDate,
+    minCalendars,
+    maxCalendars,
     dateFormat,
     getDateFromItem,
     getHighlightFromItem
@@ -174,11 +200,36 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
               const dateKey = format(date, 'yyyy-MM-dd');
               const dayHighlights = dateHighlights[dateKey] || [];
               const isToday = dateKey === format(new Date(), 'yyyy-MM-dd');
-              
+
               if (renderDay) {
                 return renderDay(date, dayHighlights);
               }
-              
+
+              if (dayHighlights.length > 1) {
+                const stripeSize = 100 / dayHighlights.length;
+                const gradientParts = dayHighlights.map((highlight, idx) => {
+                  const color = useComputedColor(highlight.className);
+                  const start = idx * stripeSize;
+                  return `${color} ${start}%, ${color} ${start + stripeSize}%`;
+                });
+
+                return (
+                  <div className="w-full h-full relative">
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: `repeating-linear-gradient(135deg, ${gradientParts.join(', ')})`
+                      }}
+                    />
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <span className={isToday ? "font-bold" : ""}>
+                        {date.getDate()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div className={cn(
                   "w-full h-full flex items-center justify-center",
