@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Classroom Guy",
+  title: "Virtual Student",
   description: "SaaS Classroom WhatsApp Bot for announcements, AI-generated calendar images, and group management.",
 };
 
