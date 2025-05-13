@@ -7,17 +7,21 @@ import {
   parse,
   addMonths,
   startOfMonth,
-  differenceInMonths
+  differenceInMonths,
+  parseISO
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-export interface ScheduleItem {
-  deadline: Date;
+interface ScheduleItem {
+  _id?: string;
+  deadline: string | Date;
   tag?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   [key: string]: unknown;
 }
 
-export interface DateHighlight {
+interface DateHighlight {
   date: Date | string;
   className?: string;
   content?: React.ReactNode;
@@ -89,7 +93,10 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
   calendarClassName,
   renderDay,
 
-  getDateFromItem = (item: T) => item.deadline,
+  getDateFromItem = (item: T) => {
+    const deadline = item.deadline;
+    return typeof deadline === 'string' ? parseISO(deadline) : deadline;
+  },
   getHighlightFromItem = (item: T, date: Date) => ({
     date,
     className: item.tag && tagConfig[item.tag]?.bgColor,
@@ -124,7 +131,7 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
       if (!rawDate) return;
 
       const date = typeof rawDate === 'string'
-        ? parse(rawDate, dateFormat, new Date())
+        ? parseISO(rawDate)
         : rawDate;
 
       const dateKey = format(date, 'yyyy-MM-dd');

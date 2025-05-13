@@ -10,12 +10,16 @@
     "knip": "knip"
   },
   "dependencies": {
+    "@google/genai": "^0.13.0",
     "@radix-ui/react-slot": "^1.2.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dom-to-image": "^2.6.0",
     "lucide-react": "^0.509.0",
+    "mongodb": "^6.16.0",
+    "mongodb-client": "^0.0.1",
+    "mongoose": "^8.14.2",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-day-picker": "^8.10.1",

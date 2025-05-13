@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   Table,
   TableBody,
@@ -9,23 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-export type TagConfigType = {
-  [key in string]: {
-    title: string;
-    bgColor: string;
-    textColor: string;
-  }
-};
-
-export type TaskTagType = string;
-
-export type ScheduleItem = {
-  deadline: Date;
-  title: string;
-  tag: TaskTagType;
-  notes?: string;
-};
+import { TagConfigType, ScheduleItem } from "@/types/schedule";
 
 type ScheduleTableProps = {
   schedule: ScheduleItem[];
@@ -58,33 +42,37 @@ export default function ScheduleTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {displayedSchedule.map((item, index) => (
-          <TableRow key={index}>
-            <TableCell>
-              {item.deadline && (
-                ['Assignment', 'Project', 'CCP'].includes(item.tag)
-                  ? (
-                    <div>
-                      {format(item.deadline, 'MMM dd, yyyy')}
-                      <div className="text-xs text-gray-500 mt-0">
-                        {format(item.deadline, 'hh:mm a')}
+        {displayedSchedule.map((item, index) => {
+          const deadline = typeof item.deadline === 'string' ? parseISO(item.deadline) : item.deadline;
+          
+          return (
+            <TableRow key={index}>
+              <TableCell>
+                {deadline && (
+                  ['Assignment', 'Project', 'CCP'].includes(item.tag)
+                    ? (
+                      <div>
+                        {format(deadline, 'MMM dd, yyyy')}
+                        <div className="text-xs text-gray-500 mt-0">
+                          {format(deadline, 'hh:mm a')}
+                        </div>
                       </div>
-                    </div>
-                  )
-                  : format(item.deadline, 'MMM dd, yyyy')
-              )}
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Badge className={cn(tagConfig[item.tag].bgColor, tagConfig[item.tag].textColor)}>
-                  {tagConfig[item.tag].title}
-                </Badge>
-                {item.title}
-              </div>
-            </TableCell>
-            <TableCell className="whitespace-normal min-w-60">{item.notes}</TableCell>
-          </TableRow>
-        ))}
+                    )
+                    : format(deadline, 'MMM dd, yyyy')
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Badge className={cn(tagConfig[item.tag].bgColor, tagConfig[item.tag].textColor)}>
+                    {tagConfig[item.tag].title}
+                  </Badge>
+                  {item.title}
+                </div>
+              </TableCell>
+              <TableCell className="whitespace-normal min-w-60">{item.notes}</TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
