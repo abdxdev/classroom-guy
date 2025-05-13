@@ -7,7 +7,7 @@ const MONGODB_DB = process.env.MONGODB_DB || 'vstudent';
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
-export async function connectToDatabase() {
+async function connectToDatabase() {
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
   }

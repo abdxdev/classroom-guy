@@ -3,23 +3,13 @@ import React, { useRef, useState, useEffect } from 'react';
 import ScalableCanvas from '@/components/ScalableCanvas';
 import Logo from '@/components/svg/logo';
 import MonthlyCalendars from '@/components/MonthlyCalendars';
-import { ScheduleItem, TagConfigType } from '@/types/schedule';
+import { ScheduleItem } from '@/types/schedule';
 import ScheduleTable from '@/components/ScheduleTable'
 import { handleExport } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { getSchedules } from '@/lib/schedule';
 import { parseISO } from 'date-fns';
-
-const TagConfig: TagConfigType = {
-  Assignment: { title: "Assign.", bgColor: "bg-red-100", textColor: "text-red-700" },
-  Viva: { title: "Viva", bgColor: "bg-pink-100", textColor: "text-pink-700" },
-  Quiz: { title: "Quiz", bgColor: "bg-blue-100", textColor: "text-blue-700" },
-  Mid: { title: "Mid", bgColor: "bg-orange-100", textColor: "text-orange-700" },
-  Final: { title: "Final", bgColor: "bg-purple-100", textColor: "text-purple-700" },
-  Project: { title: "Proj.", bgColor: "bg-green-100", textColor: "text-green-700" },
-  CCP: { title: "CCP", bgColor: "bg-yellow-100", textColor: "text-yellow-700" },
-  Other: { title: "Other", bgColor: "bg-gray-100", textColor: "text-gray-700" },
-}
+import { TAG_CONFIG } from '@/constants/tags';
 
 export default function Home() {
   const captureRef = useRef<HTMLDivElement>(null);
@@ -87,14 +77,14 @@ export default function Home() {
         <div className="flex w-full">
           <MonthlyCalendars
             schedule={displayedSchedule}
-            tagConfig={TagConfig}
+            tagConfig={TAG_CONFIG}
             minCalendars={minCalendars}
             maxCalendars={maxCalendars}
           />
           <div className="w-0.5 bg-gray-200" />
           <ScheduleTable
             schedule={displayedSchedule}
-            tagConfig={TagConfig}
+            tagConfig={TAG_CONFIG}
             maxItems={maxItems}
           />
         </div>
