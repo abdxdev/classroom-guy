@@ -19,7 +19,7 @@
     "_id": "ObjectId",
     "userId": "ObjectId",
     "name": "string",
-    "slug": "string",
+    "short": "string",
     "code": "string",
     "description": "string",
     "createdAt": "ISODate"

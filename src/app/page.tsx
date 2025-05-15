@@ -10,7 +10,7 @@ import { handleExport } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { getSchedules } from '@/lib/modelFunctions';
 import { parseISO } from 'date-fns';
-import { TAG_CONFIG } from '@/constants/tags';
+import { TagConfig } from '@/constants/tags';
 
 export default function Home() {
   const captureRef = useRef<HTMLDivElement>(null);
@@ -77,14 +77,14 @@ export default function Home() {
         <div className="flex w-full">
           <MonthlyCalendars
             schedule={displayedSchedule}
-            tagConfig={TAG_CONFIG}
+            tagConfig={TagConfig}
             minCalendars={minCalendars}
             maxCalendars={maxCalendars}
           />
           <div className="w-0.5 bg-gray-200" />
           <ScheduleTable
             schedule={displayedSchedule}
-            tagConfig={TAG_CONFIG}
+            tagConfig={TagConfig}
             maxItems={maxItems}
           />
         </div>

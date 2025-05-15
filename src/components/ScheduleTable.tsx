@@ -40,28 +40,27 @@ export default function ScheduleTable({
         <TableRow>
           <TableHead>Date/Deadline</TableHead>
           <TableHead>Title</TableHead>
-          <TableHead>Course</TableHead>
-          <TableHead>Notes</TableHead>
+          <TableHead>Description/Notes</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {displayedSchedule.map((item, index) => {
-          const deadline = typeof item.date === 'string' ? parseISO(item.date) : item.date;
-          
+          const date = typeof item.date === 'string' ? parseISO(item.date) : item.date;
+
           return (
             <TableRow key={index}>
               <TableCell>
-                {deadline && (
+                {date && (
                   ['Assignment', 'Project', 'CCP'].includes(item.tag)
                     ? (
                       <div>
-                        {format(deadline, 'MMM dd, yyyy')}
+                        {format(date, 'MMM dd, yyyy')}
                         <div className="text-xs text-gray-500 mt-0">
-                          {format(deadline, 'hh:mm a')}
+                          {format(date, 'hh:mm a')}
                         </div>
                       </div>
                     )
-                    : format(deadline, 'MMM dd, yyyy')
+                    : format(date, 'MMM dd, yyyy')
                 )}
               </TableCell>
               <TableCell>
@@ -69,20 +68,10 @@ export default function ScheduleTable({
                   <Badge className={cn(tagConfig[item.tag].bgColor, tagConfig[item.tag].textColor)}>
                     {tagConfig[item.tag].title}
                   </Badge>
-                  {item.title}
+                  {item.course?.name}
                 </div>
               </TableCell>
-              <TableCell>
-                {item.course && (
-                  <div className="text-sm">
-                    <div className="font-medium">{item.course.name}</div>
-                    <div className="text-gray-500">{item.course.code}</div>
-                  </div>
-                )}
-              </TableCell>
-              <TableCell className="whitespace-normal min-w-60">
-                {item.description}
-              </TableCell>
+              <TableCell className="whitespace-normal min-w-60">{item.description}</TableCell>
             </TableRow>
           );
         })}

@@ -5,7 +5,7 @@ import { ValidTag } from '@/constants/tags';
 export const SYSTEM_USER_ID = '6651234a1f1f1f1f1f1f1f1f';
 export const SYSTEM_STUDENT_ID = '6651234b1f1f1f1f1f1f1f10';
 
-export interface BaseDocument {
+interface BaseDocument {
   _id?: ObjectId;
   createdAt: Date;
   updatedAt?: Date;
@@ -28,7 +28,7 @@ export interface Student extends BaseDocument {
 export interface Course extends BaseDocument {
   userId: string;
   name: string;
-  slug: string;
+  short: string;
   code: string;
   description: string;
 }
@@ -46,7 +46,6 @@ export interface Schedule extends BaseDocument {
   userId: string;
   courseId: string;
   date: Date;
-  title: string;
   tag: ValidTag;
   description: string;
 }

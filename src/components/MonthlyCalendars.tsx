@@ -12,6 +12,7 @@ import {
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Schedule } from '@/types/db';
+import { TagConfigType } from '@/types/schedule';
 
 interface DateHighlight {
   date: Date | string;
@@ -21,40 +22,24 @@ interface DateHighlight {
   meta?: unknown;
 }
 
-interface ScheduleWithCourse extends Schedule {
-  course?: {
-    name: string;
-    code: string;
-    description: string;
-  };
-}
-
-interface MonthlyCalendarsProps<T = ScheduleWithCourse> {
-  schedule?: T[];
-  tagConfig?: Record<string, { bgColor: string; textColor: string; title: string }>;
-
+interface MonthlyCalendarsProps {
+  schedule?: Schedule[];
+  tagConfig?: Partial<TagConfigType>;  // Changed to Partial to make it optional
   highlights?: DateHighlight[];
-
   startDate?: Date | string;
   endDate?: Date | string;
   dateFormat?: string;
-
   minCalendars?: number;
   maxCalendars?: number;
   showNavigation?: boolean;
-
   className?: string;
   calendarClassName?: string;
-
   renderDay?: (date: Date, highlights: DateHighlight[]) => React.ReactNode;
-
-  getDateFromItem?: (item: T) => string | Date;
-  getHighlightFromItem?: (item: T, date: Date) => DateHighlight;
 }
 
 const getTailwindColor = (className?: string): string => {
   if (!className || typeof window === 'undefined') return 'transparent';
-
+  
   try {
     const tempDiv = document.createElement('div');
     tempDiv.className = className;
@@ -78,10 +63,9 @@ const useComputedColor = (className?: string) => {
   return color;
 };
 
-export default function MonthlyCalendars<T extends ScheduleWithCourse = ScheduleWithCourse>({
+export default function MonthlyCalendars({
   schedule = [],
   tagConfig = {},
-
   highlights = [],
   startDate,
   endDate,
@@ -92,18 +76,7 @@ export default function MonthlyCalendars<T extends ScheduleWithCourse = Schedule
   className,
   calendarClassName,
   renderDay,
-
-  getDateFromItem = (item: T) => {
-    return typeof item.date === 'string' ? parseISO(item.date) : item.date;
-  },
-  getHighlightFromItem = (item: T, date: Date) => ({
-    date,
-    className: item.tag && tagConfig[item.tag]?.bgColor,
-    tooltip: item.course?.name ? `${item.course.name} (${item.course.code})` : undefined,
-    meta: item
-  })
-}: MonthlyCalendarsProps<T>) {
-
+}: MonthlyCalendarsProps) {
   const { dateHighlights, monthsToDisplay } = useMemo(() => {
     const highlightMap: Record<string, DateHighlight[]> = {};
     const allDates: Date[] = [];
@@ -127,12 +100,8 @@ export default function MonthlyCalendars<T extends ScheduleWithCourse = Schedule
     });
 
     schedule.forEach(item => {
-      const rawDate = getDateFromItem(item);
-      if (!rawDate) return;
-
-      const date = typeof rawDate === 'string'
-        ? parseISO(rawDate)
-        : rawDate;
+      const date = typeof item.date === 'string' ? parseISO(item.date) : item.date;
+      if (!date) return;
 
       const dateKey = format(date, 'yyyy-MM-dd');
 
@@ -140,7 +109,11 @@ export default function MonthlyCalendars<T extends ScheduleWithCourse = Schedule
         highlightMap[dateKey] = [];
       }
 
-      highlightMap[dateKey].push(getHighlightFromItem(item, date));
+      highlightMap[dateKey].push({
+        date,
+        className: item.tag && tagConfig[item.tag]?.bgColor,
+        meta: item
+      });
       allDates.push(date);
     });
 
@@ -151,7 +124,6 @@ export default function MonthlyCalendars<T extends ScheduleWithCourse = Schedule
       firstMonth = startOfMonth(typeof startDate === 'string'
         ? parse(startDate, dateFormat, new Date())
         : startDate);
-
       lastMonth = startOfMonth(typeof endDate === 'string'
         ? parse(endDate, dateFormat, new Date())
         : endDate);
@@ -182,8 +154,7 @@ export default function MonthlyCalendars<T extends ScheduleWithCourse = Schedule
     minCalendars,
     maxCalendars,
     dateFormat,
-    getDateFromItem,
-    getHighlightFromItem
+    tagConfig
   ]);
 
   return (

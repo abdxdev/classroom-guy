@@ -1,7 +1,19 @@
 import { MongoClient, Db, ObjectId, Document } from 'mongodb';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const MONGODB_DB = process.env.MONGODB_DB || 'vstudent';
+if (!process.env.MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
+
+if (!process.env.MONGODB_DB) {
+  throw new Error('Please define the MONGODB_DB environment variable');
+}
+
+if (typeof window !== 'undefined') {
+  throw new Error('This module can only be used server-side');
+}
+
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB;
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
@@ -9,14 +21,6 @@ let cachedDb: Db | null = null;
 async function connectToDatabase() {
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
-  }
-
-  if (!MONGODB_URI) {
-    throw new Error('Please define the MONGODB_URI environment variable');
-  }
-
-  if (!MONGODB_DB) {
-    throw new Error('Please define the MONGODB_DB environment variable');
   }
 
   const client = await MongoClient.connect(MONGODB_URI);

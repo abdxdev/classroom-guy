@@ -1,13 +1,25 @@
 import { NextResponse } from 'next/server';
 import { getCollection, serializeDocument } from '@/lib/db';
 import { Schedule, SYSTEM_USER_ID } from '@/types/db';
+import { ScheduleWithCourse } from '@/types/schedule';
+import { ObjectId } from 'mongodb';
 
 export async function GET() {
   try {
-    const collection = await getCollection('schedules');
-    const schedules = await collection.find<Schedule>({}).toArray();
-    const serializedSchedules = schedules.map(serializeDocument);
-    return NextResponse.json(serializedSchedules);
+    const schedulesCollection = await getCollection('schedules');
+    const coursesCollection = await getCollection('courses');
+    
+    const schedules = await schedulesCollection.find<Schedule>({}).toArray();
+    const schedulesWithCourses: ScheduleWithCourse[] = [];
+    for (const schedule of schedules) {
+      const course = await coursesCollection.findOne({ _id: new ObjectId(schedule.courseId) });
+      schedulesWithCourses.push({
+        ...serializeDocument(schedule),
+        course: course ? serializeDocument(course) : undefined
+      });
+    }
+
+    return NextResponse.json(schedulesWithCourses);
   } catch (error) {
     console.error('Database error:', error);
     return NextResponse.json({ error: 'Failed to fetch schedules' }, { status: 500 });
