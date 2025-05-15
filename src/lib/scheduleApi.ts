@@ -1,208 +1,147 @@
-import { GoogleGenAI, FunctionCallingConfigMode, FunctionDeclaration, Type } from '@google/genai';
-import { createSchedule, getSchedules, getScheduleById, updateSchedule, deleteSchedule, getSchedulesByDateRange, reschedule } from './schedule';
-import { parseISO } from 'date-fns';
-import { VALID_TAGS, ValidTag } from '@/constants/tags';
+import {
+  GoogleGenAI,
+  HarmBlockThreshold,
+  HarmCategory,
+  GenerateContentConfig,
+  Tool,
+  Type,
+  FunctionResponse,
+  FunctionCall,
+} from '@google/genai';
+import * as scheduleLib from '../lib/schedule';
+import functionDeclarations from '../context/functionDeclarations.json';
+import { readFileSync } from 'fs';
+import path from 'path';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const systemInstruction = readFileSync(path.join(process.cwd(), 'src/context/systemInstructions.md'), 'utf-8');
+const prevContents = JSON.parse(readFileSync(path.join(process.cwd(), 'src/context/contents.json'), 'utf-8'));
 
-type ScheduleCommandInput = string | { query: string };
-
-const createScheduleDeclaration: FunctionDeclaration = {
-  name: 'createSchedule',
-  parameters: {
-    type: Type.OBJECT,
-    description: 'Create a new schedule item.',
-    properties: {
-      title: {
-        type: Type.STRING,
-        description: 'Title of the schedule item',
-      },
-      deadline: {
-        type: Type.STRING,
-        description: 'Deadline date in ISO format (e.g., "2025-05-13T15:00:00Z")',
-      },
-      tag: {
-        type: Type.STRING,
-        description: `Tag category must be one of: ${VALID_TAGS.join(', ')}`,
-        enum: [...VALID_TAGS],
-      },
-      notes: {
-        type: Type.STRING,
-        description: 'Additional notes or description',
-      },
+function convertToGeminiSchema(declaration: any): Tool {
+  const convertedDeclaration = {
+    ...declaration,
+    parameters: declaration.parameters && {
+      ...declaration.parameters,
+      properties: Object.fromEntries(
+        Object.entries(declaration.parameters.properties || {}).map(([key, value]: [string, any]) => [
+          key,
+          {
+            ...value,
+            type: value.type as Type,
+          },
+        ])
+      ),
     },
-    required: ['title', 'deadline', 'tag'],
-  },
-};
+  };
 
-const getScheduleDeclaration: FunctionDeclaration = {
-  name: 'getSchedule',
-  parameters: {
-    type: Type.OBJECT,
-    description: 'Get a schedule item by ID.',
-    properties: {
-      id: {
-        type: Type.STRING,
-        description: 'The ID of the schedule item to retrieve',
-      },
-    },
-    required: ['id'],
-  },
-};
+  return {
+    functionDeclarations: [convertedDeclaration],
+  };
+}
 
-const updateScheduleDeclaration: FunctionDeclaration = {
-  name: 'updateSchedule',
-  parameters: {
-    type: Type.OBJECT,
-    description: 'Update a schedule item.',
-    properties: {
-      id: {
-        type: Type.STRING,
-        description: 'The ID of the schedule item to update',
-      },
-      title: {
-        type: Type.STRING,
-        description: 'New title of the schedule item',
-      },
-      deadline: {
-        type: Type.STRING,
-        description: 'New deadline date in ISO format',
-      },
-      tag: {
-        type: Type.STRING,
-        description: `New tag category must be one of: ${VALID_TAGS.join(', ')}`,
-        enum: [...VALID_TAGS],
-      },
-      notes: {
-        type: Type.STRING,
-        description: 'New additional notes',
-      },
-    },
-    required: ['id'],
-  },
-};
-
-const deleteScheduleDeclaration: FunctionDeclaration = {
-  name: 'deleteSchedule',
-  parameters: {
-    type: Type.OBJECT,
-    description: 'Delete a schedule item.',
-    properties: {
-      id: {
-        type: Type.STRING,
-        description: 'The ID of the schedule item to delete',
-      },
-    },
-    required: ['id'],
-  },
-};
-
-const getSchedulesByDateRangeDeclaration: FunctionDeclaration = {
-  name: 'getSchedulesByDateRange',
-  parameters: {
-    type: Type.OBJECT,
-    description: 'Get schedules within a date range.',
-    properties: {
-      startDate: {
-        type: Type.STRING,
-        description: 'Start date in ISO format',
-      },
-      endDate: {
-        type: Type.STRING,
-        description: 'End date in ISO format',
-      },
-    },
-    required: ['startDate', 'endDate'],
-  },
-};
-
-export async function handleScheduleCommand(input: ScheduleCommandInput) {
-  const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  
-  const functionDeclarations = [
-    createScheduleDeclaration,
-    getScheduleDeclaration,
-    updateScheduleDeclaration,
-    deleteScheduleDeclaration,
-    getSchedulesByDateRangeDeclaration,
-  ];
-
-  const query = typeof input === 'string' ? input : input.query;
-
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-001',
-    contents: query,
-    config: {
-      toolConfig: {
-        functionCallingConfig: {
-          mode: FunctionCallingConfigMode.ANY,
-          allowedFunctionNames: functionDeclarations.map(d => d.name as string),
-        }
-      },
-      tools: [{ functionDeclarations }]
-    }
+export async function handleScheduleCommand(query: string) {
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
   });
 
-  if (!response.functionCalls || response.functionCalls.length === 0) {
-    return { error: 'No function call generated' };
-  }
+  const tools: Tool[] = functionDeclarations.map(convertToGeminiSchema);
 
-  const functionCall = response.functionCalls[0];
-  if (!functionCall.args) {
-    return { error: 'No arguments provided' };
-  }
-  
-  const args = functionCall.args as Record<string, unknown>;
-
-  try {
-    switch (functionCall.name) {
-      case 'createSchedule': {
-        const tag = args.tag as ValidTag;
-        if (!VALID_TAGS.includes(tag)) {
-          return { error: `Invalid tag. Must be one of: ${VALID_TAGS.join(', ')}` };
-        }
-        return await createSchedule({
-          title: args.title as string,
-          tag,
-          notes: args.notes as string | undefined,
-          deadline: parseISO(args.deadline as string),
-        });
+  const config: GenerateContentConfig = {
+    maxOutputTokens: 500,
+    safetySettings: [
+      {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+    ],
+    tools,
+    responseMimeType: 'text/plain',
+    systemInstruction: [
+      {
+        text: systemInstruction,
       }
+    ],
+  };
+  const model = 'gemini-2.0-flash';
+  const contents = [...prevContents, {
+    role: 'user',
+    parts: [
+      {
+        text: query,
+      },
+    ],
+  }];
 
-      case 'updateSchedule': {
-        const updateData: any = { ...args };
-        delete updateData.id;
-        if (updateData.tag) {
-          if (!VALID_TAGS.includes(updateData.tag as ValidTag)) {
-            return { error: `Invalid tag. Must be one of: ${VALID_TAGS.join(', ')}` };
-          }
-          updateData.tag = updateData.tag as ValidTag;
-        }
-        if (updateData.deadline) {
-          updateData.deadline = parseISO(updateData.deadline as string);
-        }
-        return await updateSchedule(args.id as string, updateData);
+  const response = await ai.models.generateContent({
+    config,
+    model,
+    contents,
+  });
+  let functionResponse: FunctionResponse = {}
+
+  if (response.functionCalls && response.functionCalls.length > 0) {
+    console.log(response.text);
+    const functionCall = response.functionCalls[0] as FunctionCall;
+    const functionName = functionCall.name;
+    const functionArgs = functionCall.args;
+
+    console.log(`Function call: ${functionName}`, functionArgs);
+
+    try {
+      if (!functionName) {
+        throw new Error('Function name is undefined');
       }
-
-      case 'getSchedule':
-        return await getScheduleById(args.id as string);
-
-      case 'deleteSchedule':
-        return await deleteSchedule(args.id as string);
-
-      case 'getSchedulesByDateRange':
-        return await getSchedulesByDateRange(
-          parseISO(args.startDate as string),
-          parseISO(args.endDate as string)
+      if (!functionArgs) {
+        throw new Error('Function arguments are undefined');
+      }
+      const allowedFunction = functionDeclarations.find(decl => decl.name === functionName);
+      if (!allowedFunction) {
+        throw new Error(`Function ${functionName} is not allowed`);
+      }
+      if (allowedFunction.parameters?.required) {
+        const missingParams = allowedFunction.parameters.required.filter(
+          param => !(param in functionArgs)
         );
+        if (missingParams.length > 0) {
+          throw new Error(`Missing required parameters: ${missingParams.join(', ')}`);
+        }
+      }
+      const scheduleFunction = (scheduleLib as any)[functionName];
+      if (typeof scheduleFunction !== 'function') {
+        throw new Error(`Function ${functionName} is not implemented in schedule library`);
+      }
 
-      default:
-        return { error: 'Unknown function' };
+      const functionResult = await scheduleFunction(functionArgs);
+      const output = typeof functionResult === 'string' ? functionResult : JSON.stringify(functionResult);
+
+      functionResponse = {
+        name: functionName,
+        response: { output }
+      };
+
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : 'An unknown error occurred';
+      console.error(`Function execution error:`, error);
+
+      functionResponse = {
+        name: functionName,
+        response: { error }
+      };
     }
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: 'An unknown error occurred' };
+  } else if (response.text) {
+    return response.text;
   }
+
+  console.log('Function response:', functionResponse);
 }

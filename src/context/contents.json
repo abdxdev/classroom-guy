@@ -1,0 +1,162 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "teacher ne kaha 625 quiz deney k liye chala jay"
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "functionCall": {
+          "name": "sendToAdmin",
+          "args": {
+            "question": "The user said \"teacher ne kaha 625 quiz deney k liye chala jay\". I do not understand this request."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "functionResponse": {
+          "name": "sendToAdmin",
+          "response": {
+            "output": "ignore it"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "text": "I am sorry, I do not understand this request. I am sending it to the administrato"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "bruh"
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "functionCall": {
+          "name": "ignorePrompt",
+          "args": {}
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "teacher is calling for 625 for the quiz"
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "functionCall": {
+          "name": "getAllCourses",
+          "args": {}
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "functionResponse": {
+          "name": "getAllCourses",
+          "response": {
+            "output": "{\"courses\":[{\"id\":1,\"name\": \"DAA\",\"description\": \"Learn the fundamentals of Data Structures and Algorithms.\",\"instructor\": \"Dr. Smith\",\"duration\": \"10 weeks\"},{\"id\": 2,\"name\": \"Advanced Mathematics\",\"description\": \"Explore advanced topics in mathematics.\",\"instructor\": \"Prof. Johnson\",\"duration\": \"12 weeks\"}]}"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "text": "OK. I see two courses: DAA (Data Structures and Algorithms) and Advanced Mathematics. Which course, DAA or Advanced Mathematics, is course 625 referring to?"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "hi bro"
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "functionCall": {
+          "name": "ignorePrompt",
+          "args": {}
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "why did you ignore my msg"
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "functionCall": {
+          "name": "answerPrompt",
+          "args": {}
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "functionResponse": {
+          "name": "answerPrompt",
+          "response": {
+            "output": "previous was ignored"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      {
+        "text": "I ignored your message because it contained irrelevant content (\"hi bro\"). I am designed to focus on scheduling and course-related requests. How can I help you with your schedule or courses?"
+      }
+    ]
+  }
+]

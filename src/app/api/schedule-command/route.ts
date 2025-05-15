@@ -4,15 +4,14 @@ import { handleScheduleCommand } from '@/lib/scheduleApi';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // Handle both string and query object formats
-    if (typeof body === 'string' || (typeof body === 'object' && 'query' in body && typeof body.query === 'string')) {
-      const result = await handleScheduleCommand(body);
+
+    if (typeof body === 'object' && 'query' in body && typeof body.query === 'string') {
+      const result = await handleScheduleCommand(body.query);
       return NextResponse.json(result);
     }
 
     return NextResponse.json(
-      { error: 'Invalid request format. Expected string or { query: string }' },
+      { error: 'Invalid request format. Expected { query: string }' },
       { status: 400 }
     );
   } catch (error) {

@@ -1,0 +1,67 @@
+enhance this prompt:
+
+i would like general multi-step operations. right now it supports only single step operation. dont repeat types or functions that are used by diff files.
+i need to be able to make a system where ai can edit/query data then performs some operations. it should be able to do that in a loop until it gets satisfied. make it so that it makes a plan first depending upon the functions then execute those functions one by one only if ai needs them (you should ask it for continueing the execution with attatching the results from previous query. hope that you understand it)
+like here is an example of how the system should work. it is roughly like this. dont worry about the formatting (u will use the structured format). i just want to show you the flow of how it should work. and i want to be able to add more functions in the future. so make it flexible. the functions used in the example are just for demonstration they arent real functions. at each step, the ai should be able to ask for more information if needed. the responces should be stored in a database.
+
+
+userprompt:
+    update the schedule for daa to next week, delete todays all it is canceled, and AI project deadline extended to next month.
+airesponse:
+    text:
+        what do you meant by all it is canceled? please clarify, is it quizes, assignments, or something else?
+    perform:
+        done
+userprompt:
+    i meant all quizes are canceled.
+airesponse:
+    text:
+        i will first check the current schedule for daa and then determine what needs to be updated for next week. after that, i will update the schedule accordingly.
+        i will also delete today's all quizes
+        lastly, i will extend the AI project deadline to next month.
+    perform:
+        call update_schedule(daa, next_week)
+systemprompt:
+    the schedule for daa has been updated to next week.
+airesponse:
+    text:
+        the schedule for daa has been updated to next week. now, i will delete today's all quizes.
+    perform:
+        call delete_quizes(today)
+systemprompt:
+    id 123 {quiz: toa, desc: quiz notes will be provided later}, id 234 {quiz: daa, desc: all students need to bring their laptops}, id 345 {quiz: ai, desc: quiz will be held in the lab} have been deleted.
+airesponse:
+    text:
+        all today's quizes have been deleted. now, i will extend the AI project deadline to next month.
+    perform:
+        call extend_deadline(AI_project, next_month)
+systemprompt:
+    the AI project deadline has been extended to next month.
+airesponse:
+    text:
+        the AI project deadline has been extended to next month.
+    perform:
+        done
+systemprompt:
+    summarize the operations performed.
+airesponse:
+    text:
+        here is the summary of the operations performed:
+        1. Updated the schedule for DAA to next week.
+        2. Deleted all today's quizzes.
+        3. Extended the AI project deadline to next month.
+    perform:
+        done
+userprompt:
+    you deleted the quizes but i need to know which quizes were deleted. please provide me the list of deleted quizes.
+airesponse:
+    text:
+        id 123, id 234, id 345 were deleted.
+userprompt:
+    i need to know the details of the deleted quizes.
+airesponse:
+    text:
+        here are the details of the deleted quizzes:
+        1. id 123 {quiz: toa, desc: quiz notes will be provided later}
+        2. id 234 {quiz: daa, desc: all students need to bring their laptops}
+        3. id 345 {quiz: ai, desc: quiz will be held in the lab}

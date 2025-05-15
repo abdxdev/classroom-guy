@@ -1,0 +1,427 @@
+[
+  {
+    "name": "getTime",
+    "description": "Gets the current time in ISO format with day."
+  },
+  {
+    "name": "getTimeTableByCourseId",
+    "description": "Gets the time table for a specific course.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "courseId": {
+          "type": "string",
+          "description": "The ID of the course to get the time table for."
+        }
+      },
+      "required": [
+        "courseId"
+      ]
+    }
+  },
+  {
+    "name": "getAllTimeTables",
+    "description": "Gets the time tables for all offered courses."
+  },
+  {
+    "name": "getAllSchedules",
+    "description": "Gets all schedules in the system."
+  },
+  {
+    "name": "getSchedulesByCourseId",
+    "description": "Gets the schedule for a specific course.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "courseId": {
+          "type": "string",
+          "description": "The ID of the course."
+        }
+      },
+      "required": [
+        "courseId"
+      ]
+    }
+  },
+  {
+    "name": "getScheduleByScheduleId",
+    "description": "Gets the schedule for a specific schedule by its ID.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "string",
+          "description": "The ID of the schedule to retrieve."
+        }
+      },
+      "required": [
+        "scheduleId"
+      ]
+    }
+  },
+  {
+    "name": "getSlotAfter",
+    "description": "Gets the next available date slot for a specific course.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "courseId": {
+          "type": "string",
+          "description": "The ID of the course to check."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date to check for the next available slot (ISO date)."
+        }
+      },
+      "required": [
+        "courseId",
+        "date"
+      ]
+    }
+  },
+  {
+    "name": "getSchedulesByDateRange",
+    "description": "Gets the schedules for a given date range. Note: Backend will enforce that at least one of startDate or endDate must be provided.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "startDate": {
+          "type": "string",
+          "description": "The start date of the range in ISO format (YYYY-MM-DD)."
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date of the range in ISO format (YYYY-MM-DD)."
+        }
+      }
+    }
+  },
+  {
+    "name": "getSchedulesBeforeDate",
+    "description": "Gets all schedules that are scheduled before a specific date.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "The date to filter schedules by (ISO format)."
+        }
+      },
+      "required": [
+        "date"
+      ]
+    }
+  },
+  {
+    "name": "addNewSchedule",
+    "description": "Adds a new schedule to the system.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "courseId": {
+          "type": "string",
+          "description": "The ID of the course to which the schedule belongs."
+        },
+        "description": {
+          "type": "string",
+          "description": "One line details/notes/syllabus description of the schedule."
+        },
+        "date": {
+          "type": "string",
+          "description": "Due date or scheduled date of the schedule (ISO format)."
+        },
+        "tag": {
+          "type": "string",
+          "enum": [
+            "assignment",
+            "quiz",
+            "mid",
+            "viva",
+            "final",
+            "ccp",
+            "project",
+            "other"
+          ],
+          "description": "Type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+        }
+      },
+      "required": [
+        "courseId",
+        "date",
+        "tag",
+        "description"
+      ]
+    }
+  },
+  {
+    "name": "getSchedulesByTag",
+    "description": "Gets all schedules that match a specific tag.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "enum": [
+            "assignment",
+            "quiz",
+            "mid",
+            "viva",
+            "final",
+            "ccp",
+            "project",
+            "other"
+          ],
+          "description": "Type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+        }
+      },
+      "required": [
+        "tag"
+      ]
+    }
+  },
+  {
+    "name": "getSchedulesByDate",
+    "description": "Gets all schedules that match a specific date.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "The date to filter schedules by (ISO format)."
+        }
+      },
+      "required": [
+        "date"
+      ]
+    }
+  },
+  {
+    "name": "updateScheduleDescription",
+    "description": "Updates the description of a schedule.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "string",
+          "description": "The ID of the schedule to update."
+        },
+        "description": {
+          "type": "string",
+          "description": "New description for the schedule."
+        }
+      },
+      "required": [
+        "scheduleId",
+        "description"
+      ]
+    }
+  },
+  {
+    "name": "updateScheduleDate",
+    "description": "Updates the date of a schedule.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "string",
+          "description": "The ID of the schedule to update."
+        },
+        "date": {
+          "type": "string",
+          "description": "New date for the schedule (ISO format)."
+        }
+      },
+      "required": [
+        "scheduleId",
+        "date"
+      ]
+    }
+  },
+  {
+    "name": "updateScheduleTag",
+    "description": "Updates the tag of a schedule.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "string",
+          "description": "The ID of the schedule to update."
+        },
+        "tag": {
+          "type": "string",
+          "enum": [
+            "assignment",
+            "quiz",
+            "mid",
+            "viva",
+            "final",
+            "ccp",
+            "project",
+            "other"
+          ],
+          "description": "New type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+        }
+      },
+      "required": [
+        "scheduleId",
+        "tag"
+      ]
+    }
+  },
+  {
+    "name": "updateScheduleCourseId",
+    "description": "Updates the course ID of a schedule.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "string",
+          "description": "The ID of the schedule to update."
+        },
+        "courseId": {
+          "type": "string",
+          "description": "New course ID for the schedule."
+        }
+      },
+      "required": [
+        "scheduleId",
+        "courseId"
+      ]
+    }
+  },
+  {
+    "name": "updateSchedule",
+    "description": "Updates a schedule with new details.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "string",
+          "description": "The ID of the schedule to update."
+        },
+        "description": {
+          "type": "string",
+          "description": "New description for the schedule."
+        },
+        "date": {
+          "type": "string",
+          "description": "New date for the schedule (ISO format)."
+        },
+        "tag": {
+          "type": "string",
+          "enum": [
+            "assignment",
+            "quiz",
+            "mid",
+            "viva",
+            "final",
+            "ccp",
+            "project",
+            "other"
+          ],
+          "description": "New type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+        }
+      },
+      "required": [
+        "scheduleId"
+      ]
+    }
+  },
+  {
+    "name": "deleteSchedule",
+    "description": "Deletes schedule from the system.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "string",
+          "description": "The ID of the schedule to delete."
+        }
+      },
+      "required": [
+        "scheduleId"
+      ]
+    }
+  },
+  {
+    "name": "runCustomDatabaseQuery",
+    "description": "Runs a custom mongoDB query.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The custom query string to run on the schedules collection."
+        }
+      },
+      "required": [
+        "query"
+      ]
+    }
+  },
+  {
+    "name": "getCollectionNames",
+    "description": "Gets all collection names in the database."
+  },
+  {
+    "name": "getAllCourses",
+    "description": "Gets all courses in the system."
+  },
+  {
+    "name": "getCourseById",
+    "description": "Gets a specific course by its ID.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "courseId": {
+          "type": "string",
+          "description": "The ID of the course to retrieve."
+        }
+      },
+      "required": [
+        "courseId"
+      ]
+    }
+  },
+  {
+    "name": "sendToAdmin",
+    "description": "Asks a question to higher-ups or the admin. If the question cant be answered, it will be sent to the admin.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string",
+          "description": "The question or topic the user wants to discuss."
+        }
+      },
+      "required": [
+        "question"
+      ]
+    }
+  },
+  {
+    "name": "ignorePrompt",
+    "description": "Ignores a message from the user."
+  },
+  {
+    "name": "answerPrompt",
+    "description": "Answers a message from the user."
+  },
+  {
+    "name": "checkPreviousInteractions",
+    "description": "Checks previous interactions with the user.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "fromOtherUsers": {
+          "type": "boolean",
+          "description": "Whether the interaction is from another user."
+        }
+      },
+      "required": [
+        "fromOtherUsers"
+      ]
+    }
+  }
+]
