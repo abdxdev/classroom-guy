@@ -1,5 +1,4 @@
 import { MongoClient, Db, ObjectId, Document } from 'mongodb';
-import { ScheduleItem } from '@/types/schedule';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const MONGODB_DB = process.env.MONGODB_DB || 'vstudent';
@@ -29,23 +28,27 @@ async function connectToDatabase() {
   return { client, db };
 }
 
-export function serializeDocument<T extends Document>(doc: T): ScheduleItem {
+export function serializeDocument<T extends Document>(doc: T): any {
   const serialized = { ...doc } as any;
 
-  if (serialized._id instanceof ObjectId) {
-    serialized._id = serialized._id.toString();
-  }
-
   for (const key in serialized) {
-    if (serialized[key] instanceof Date) {
+    if (serialized[key] instanceof ObjectId) {
+      serialized[key] = serialized[key].toString();
+    } else if (serialized[key] instanceof Date) {
       serialized[key] = serialized[key].toISOString();
+    } else if (Array.isArray(serialized[key])) {
+      serialized[key] = serialized[key].map((item: any) => 
+        item instanceof ObjectId ? item.toString() : item
+      );
     }
   }
 
-  return serialized as ScheduleItem;
+  return serialized;
 }
 
-export async function getCollection(name: string) {
+type validCollections = "users" | "students" | "courses" | "weekly_time_tables" | "schedules" | "conversations";
+
+export async function getCollection(name: validCollections) {
   const { db } = await connectToDatabase();
   return db.collection(name);
 }

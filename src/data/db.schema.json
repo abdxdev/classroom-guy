@@ -1,0 +1,94 @@
+{
+  "users": {
+    "_id": "ObjectId",
+    "name": "string",
+    "email": "string",
+    "university": "string",
+    "password_hash": "string",
+    "createdAt": "ISODate"
+  },
+  "students": {
+    "_id": "ObjectId",
+    "userId": "ObjectId",
+    "name": "string",
+    "number": "string",
+    "permission": "string",
+    "createdAt": "ISODate"
+  },
+  "courses": {
+    "_id": "ObjectId",
+    "userId": "ObjectId",
+    "name": "string",
+    "slug": "string",
+    "code": "string",
+    "description": "string",
+    "createdAt": "ISODate"
+  },
+  "weekly_time_tables": {
+    "_id": "ObjectId",
+    "userId": "ObjectId",
+    "courseId": "ObjectId",
+    "day": "string",
+    "startTime": "string",
+    "endTime": "string",
+    "location": "string",
+    "createdAt": "ISODate"
+  },
+  "schedules": {
+    "_id": "ObjectId",
+    "userId": "ObjectId",
+    "courseId": "ObjectId",
+    "date": "ISODate",
+    "tag": "string",
+    "description": "string",
+    "createdAt": "ISODate"
+  },
+  "conversations": {
+    "_id": "ObjectId",
+    "userId": "ObjectId",
+    "studentId": "ObjectId",
+    "conversationId": "uuid",
+    "messages": [
+      {
+        "role": "string",
+        "parts": [
+          {
+            "text": "string"
+          }
+        ]
+      },
+      {
+        "role": "string",
+        "parts": [
+          {
+            "functionCall": {
+              "name": "string",
+              "args": {
+                "arg1": "string",
+                "arg2": "string"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "string",
+        "parts": [
+          {
+            "functionResponse": {
+              "name": "string",
+              "response": {
+                "output": "string",
+                "error": "string"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "summary": "string",
+    "completed": "boolean",
+    "createdAt": "ISODate",
+    "updatedAt": "ISODate"
+  }
+}

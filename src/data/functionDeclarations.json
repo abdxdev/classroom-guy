@@ -423,5 +423,21 @@
         "fromOtherUsers"
       ]
     }
+  },
+  {
+    "name": "askUser",
+    "description": "Asks a question to the user.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string",
+          "description": "The question to ask the user."
+        }
+      },
+      "required": [
+        "question"
+      ]
+    }
   }
 ]

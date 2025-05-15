@@ -21,7 +21,7 @@
     ]
   },
   {
-    "role": "user",
+    "role": "model",
     "parts": [
       {
         "functionResponse": {
@@ -80,7 +80,7 @@
     ]
   },
   {
-    "role": "user",
+    "role": "model",
     "parts": [
       {
         "functionResponse": {
@@ -139,7 +139,7 @@
     ]
   },
   {
-    "role": "user",
+    "role": "model",
     "parts": [
       {
         "functionResponse": {

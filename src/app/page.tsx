@@ -7,7 +7,7 @@ import { ScheduleItem } from '@/types/schedule';
 import ScheduleTable from '@/components/ScheduleTable'
 import { handleExport } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { getSchedules } from '@/lib/schedule';
+import { getSchedules } from '@/lib/modelFunctions';
 import { parseISO } from 'date-fns';
 import { TAG_CONFIG } from '@/constants/tags';
 
