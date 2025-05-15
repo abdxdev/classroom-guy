@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import {
   format,
@@ -11,8 +9,7 @@ import {
   parseISO
 } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Schedule } from '@/types/db';
-import { TagConfigType } from '@/types/schedule';
+import { ScheduleTableEntry } from '@/types/schedule';
 
 interface DateHighlight {
   date: Date | string;
@@ -23,8 +20,7 @@ interface DateHighlight {
 }
 
 interface MonthlyCalendarsProps {
-  schedule?: Schedule[];
-  tagConfig?: Partial<TagConfigType>;  // Changed to Partial to make it optional
+  schedule?: ScheduleTableEntry[];
   highlights?: DateHighlight[];
   startDate?: Date | string;
   endDate?: Date | string;
@@ -37,35 +33,8 @@ interface MonthlyCalendarsProps {
   renderDay?: (date: Date, highlights: DateHighlight[]) => React.ReactNode;
 }
 
-const getTailwindColor = (className?: string): string => {
-  if (!className || typeof window === 'undefined') return 'transparent';
-  
-  try {
-    const tempDiv = document.createElement('div');
-    tempDiv.className = className;
-    document.body.appendChild(tempDiv);
-    const bgColor = window.getComputedStyle(tempDiv).backgroundColor;
-    document.body.removeChild(tempDiv);
-    return bgColor;
-  } catch (error) {
-    console.warn('Error computing tailwind color:', error);
-    return 'transparent';
-  }
-};
-
-const useComputedColor = (className?: string) => {
-  const [color, setColor] = useState('transparent');
-
-  useEffect(() => {
-    setColor(getTailwindColor(className));
-  }, [className]);
-
-  return color;
-};
-
 export default function MonthlyCalendars({
   schedule = [],
-  tagConfig = {},
   highlights = [],
   startDate,
   endDate,
@@ -111,7 +80,7 @@ export default function MonthlyCalendars({
 
       highlightMap[dateKey].push({
         date,
-        className: item.tag && tagConfig[item.tag]?.bgColor,
+        className: item.tag.color,
         meta: item
       });
       allDates.push(date);
@@ -154,7 +123,6 @@ export default function MonthlyCalendars({
     minCalendars,
     maxCalendars,
     dateFormat,
-    tagConfig
   ]);
 
   return (
@@ -171,51 +139,68 @@ export default function MonthlyCalendars({
             today: "bg-none",
           }}
           modifiers={{
-            highlighted: (date) => format(date, 'yyyy-MM-dd') in dateHighlights,
+            highlighted: ({ date }: { date: Date }) => {
+              try {
+                const formattedDate = format(date, 'yyyy-MM-dd');
+                return formattedDate in dateHighlights;
+              } catch (error) {
+                console.warn('Invalid date encountered:', error);
+                return false;
+              }
+            },
           }}
           components={{
-            DayContent: ({ date }) => {
-              const dateKey = format(date, 'yyyy-MM-dd');
-              const dayHighlights = dateHighlights[dateKey] || [];
-              const isToday = dateKey === format(new Date(), 'yyyy-MM-dd');
+            DayContent: ({ date }: { date: Date }) => {
+              try {
+                const dateKey = format(new Date(date), 'yyyy-MM-dd');
+                const dayHighlights = dateHighlights[dateKey] || [];
+                const isToday = dateKey === format(new Date(), 'yyyy-MM-dd');
 
-              if (renderDay) {
-                return renderDay(date, dayHighlights);
-              }
+                if (renderDay) {
+                  return renderDay(new Date(date), dayHighlights);
+                }
 
-              if (dayHighlights.length > 1) {
-                const stripeSize = 100 / dayHighlights.length;
-                const gradientParts = dayHighlights.map((highlight, idx) => {
-                  const color = useComputedColor(highlight.className);
-                  const start = idx * stripeSize;
-                  return `${color} ${start}%, ${color} ${start + stripeSize}%`;
-                });
+                if (dayHighlights.length > 1) {
+                  const stripeSize = 100 / dayHighlights.length;
+                  const gradientParts = dayHighlights.map((highlight, idx) => {
+                    const color = highlight.className || 'transparent';
+                    const start = idx * stripeSize;
+                    return `${color}20 ${start}%, ${color}20 ${start + stripeSize}%`; // Using 20 (12.5%) opacity
+                  });
+
+                  return (
+                    <div className="w-full h-full relative">
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: `repeating-linear-gradient(135deg, ${gradientParts.join(', ')})`
+                        }}
+                      />
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <span className={isToday ? "font-bold" : ""}
+                              style={{ color: dayHighlights[0]?.className || 'inherit' }}>
+                          {date.getDate()}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
-                  <div className="w-full h-full relative">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background: `repeating-linear-gradient(135deg, ${gradientParts.join(', ')})`
-                      }}
-                    />
-                    <div className="relative w-full h-full flex items-center justify-center">
-                      <span className={isToday ? "font-bold" : ""}>
-                        {date.getDate()}
-                      </span>
-                    </div>
+                  <div 
+                    className="w-full h-full flex items-center justify-center"
+                    style={{ 
+                      backgroundColor: `${dayHighlights[0]?.className}20` || 'transparent',
+                      color: dayHighlights[0]?.className || 'inherit'
+                    }}
+                  >
+                    <span className={isToday ? "font-bold" : ""}>{date.getDate()}</span>
                   </div>
                 );
+              } catch (error) {
+                console.warn('Invalid date encountered:', error);
+                return null;
               }
-
-              return (
-                <div className={cn(
-                  "w-full h-full flex items-center justify-center",
-                  dayHighlights[0]?.className,
-                )}>
-                  <span className={isToday ? "font-bold" : ""}>{date.getDate()}</span>
-                </div>
-              );
             }
           }}
         />

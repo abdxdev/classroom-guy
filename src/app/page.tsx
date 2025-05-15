@@ -4,17 +4,16 @@ import React, { useRef, useState, useEffect } from 'react';
 import ScalableCanvas from '@/components/ScalableCanvas';
 import Logo from '@/components/svg/logo';
 import MonthlyCalendars from '@/components/MonthlyCalendars';
-import { ScheduleWithCourse } from '@/types/schedule';
+import { ScheduleTableEntry } from '@/types/schedule';
 import ScheduleTable from '@/components/ScheduleTable';
 import { handleExport } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { getSchedules } from '@/lib/modelFunctions';
-import { parseISO } from 'date-fns';
-import { TagConfig } from '@/constants/tags';
+import { Chat } from '@/components/ui/chat';
+import { getAllSchedules } from '@/lib/modelFunctions';
 
 export default function Home() {
   const captureRef = useRef<HTMLDivElement>(null);
-  const [schedule, setSchedule] = useState<ScheduleWithCourse[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleTableEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,13 +25,8 @@ export default function Home() {
   useEffect(() => {
     async function loadSchedules() {
       try {
-        const data = await getSchedules();
-        const sortedData = [...data].sort((a, b) => {
-          const dateA = typeof a.date === 'string' ? parseISO(a.date) : a.date;
-          const dateB = typeof b.date === 'string' ? parseISO(b.date) : b.date;
-          return dateA.getTime() - dateB.getTime();
-        });
-        setSchedule(sortedData);
+        const data = await getAllSchedules();
+        setSchedule(data);
       } catch (err) {
         console.error('Error loading schedules:', err);
         setError('Failed to load schedules');
@@ -43,6 +37,10 @@ export default function Home() {
 
     loadSchedules();
   }, []);
+
+  const handleTest = () => {
+    import('@/lib/modelFunctions.test');
+  };
 
   const displayedSchedule = maxItems > 0 ? schedule.slice(0, maxItems) : schedule;
 
@@ -63,6 +61,10 @@ export default function Home() {
     );
   }
 
+  // if (!loading) {
+  //   console.log('Schedule:', schedule);
+  //   console.log(schedule[0].tag.bgColor);
+  // }
   const content = (
     <div className="flex flex-col items-center max-w-4xl mx-auto m-4 justify-between">
       <h1 className="text-2xl font-bold mb-4">📅 Schedule</h1>
@@ -77,14 +79,12 @@ export default function Home() {
         <div className="flex w-full">
           <MonthlyCalendars
             schedule={displayedSchedule}
-            tagConfig={TagConfig}
             minCalendars={minCalendars}
             maxCalendars={maxCalendars}
           />
           <div className="w-0.5 bg-gray-200" />
           <ScheduleTable
             schedule={displayedSchedule}
-            tagConfig={TagConfig}
             maxItems={maxItems}
           />
         </div>
@@ -99,21 +99,26 @@ export default function Home() {
   );
 
   return (
-    <div className="flex flex-col items-center h-screen justify-center p-4 overflow-auto">
-      <ScalableCanvas
-        captureRef={captureRef}
-        width={frameSize}
-        height={frameSize}
-        className='bg-white outline outline-gray-200'
-      >
-        {content}
-      </ScalableCanvas>
-      <Button
-        className="mt-4"
-        onClick={() => captureRef.current && handleExport(captureRef, 'schedule.png')}
-      >
-        Export Schedule
-      </Button>
+    <div className="flex items-center min-h-screen p-4 gap-5 justify-center">
+      <div className="flex flex-col items-center justify-center">
+        <ScalableCanvas
+          captureRef={captureRef}
+          width={frameSize}
+          height={frameSize}
+          className='bg-white outline outline-gray-200'
+        >
+          {content}
+        </ScalableCanvas>
+        <div className="flex gap-4 mt-4">
+          <Button onClick={() => captureRef.current && handleExport(captureRef, 'schedule.png')}>
+            Export Schedule
+          </Button>
+          <Button onClick={handleTest} variant="outline">
+            Run Tests
+          </Button>
+        </div>
+      </div>
+      <Chat />
     </div>
   );
 }

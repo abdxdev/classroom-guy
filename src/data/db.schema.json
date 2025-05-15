@@ -38,10 +38,11 @@
     "_id": "ObjectId",
     "userId": "ObjectId",
     "courseId": "ObjectId",
+    "tagId": "ObjectId",
     "date": "ISODate",
-    "tag": "string",
     "description": "string",
-    "createdAt": "ISODate"
+    "createdAt": "ISODate",
+    "updatedAt": "ISODate"
   },
   "conversations": {
     "_id": "ObjectId",
@@ -88,6 +89,14 @@
     ],
     "summary": "string",
     "completed": "boolean",
+    "createdAt": "ISODate",
+    "updatedAt": "ISODate"
+  },
+  "tags": {
+    "_id": "ObjectId",
+    "userId": "ObjectId",
+    "title": "string",
+    "color": "string",
     "createdAt": "ISODate",
     "updatedAt": "ISODate"
   }

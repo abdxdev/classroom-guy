@@ -1,12 +1,8 @@
-import { ObjectId } from 'mongodb';
-import { ValidTag } from '@/constants/tags';
-
-// System IDs (temporary until auth is implemented)
 export const SYSTEM_USER_ID = '6651234a1f1f1f1f1f1f1f1f';
 export const SYSTEM_STUDENT_ID = '6651234b1f1f1f1f1f1f1f10';
 
 interface BaseDocument {
-  _id?: ObjectId;
+  _id: string;
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -46,7 +42,7 @@ export interface Schedule extends BaseDocument {
   userId: string;
   courseId: string;
   date: Date;
-  tag: ValidTag;
+  tagId: string;
   description: string;
 }
 
@@ -75,4 +71,10 @@ export interface Conversation extends BaseDocument {
   messages: ConversationMessage[];
   summary: string;
   completed: boolean;
+}
+
+export interface Tag extends BaseDocument {
+  userId: string;
+  title: string;
+  color: string;
 }

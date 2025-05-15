@@ -1,21 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getCollection, serializeDocument } from '@/lib/db';
-import { SYSTEM_USER_ID } from '@/types/db';
+import { TimeTableEntry, SYSTEM_USER_ID } from '@/types/db';
 import { ObjectId } from 'mongodb';
 
 export async function GET() {
   try {
-    const collection = await getCollection('schedules');
+    const collection = await getCollection('weekly_time_tables');
     const res = collection.aggregate([
-      {
-        $lookup: {
-          from: "tags",
-          localField: "tagId",
-          foreignField: "_id",
-          as: "tag",
-        },
-      },
-      { $unwind: "$tag" },
       {
         $lookup: {
           from: "courses",
@@ -26,16 +17,21 @@ export async function GET() {
       },
       { $unwind: "$course" },
     ]);
-    // console.log('Aggregated schedules:', res);
-    const schedules = await res.toArray();
+    const timetables = await res.toArray();
     return NextResponse.json(
-      schedules.map((schedule) => ({
-        ...serializeDocument(schedule),
-        date: schedule.date ? new Date(schedule.date) : null,
-      }))
+      timetables.map((timetable) => {
+        const serializedTimetable = serializeDocument(timetable);
+        return {
+          ...serializedTimetable,
+          course: {
+            ...serializedTimetable.course,
+            _id: serializedTimetable.course._id.toString(),
+          },
+        };
+      })
     );
   } catch (error) {
-    console.error('Error in GET /api/schedules:', error);
+    console.error('Error in GET /api/timetables:', error);
     return NextResponse.json(
       { error: 'Failed to fetch schedules' },
       { status: 500 }
@@ -43,37 +39,42 @@ export async function GET() {
   }
 }
 
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const collection = await getCollection('schedules');
+    const collection = await getCollection('weekly_time_tables');
 
-    // Validate and convert date if present
-    if (body.date && typeof body.date === 'string') {
-      const date = new Date(body.date);
-      if (isNaN(date.getTime())) {
-        return NextResponse.json(
-          { error: 'Invalid date format' },
-          { status: 400 }
-        );
-      }
-      body.date = date;
+    // Validate required fields
+    if (!body.courseId || !body.day || !body.startTime || !body.endTime || !body.location) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
-    const newSchedule = {
+    // Add system fields
+    const timetable = {
       ...body,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: SYSTEM_USER_ID,
+      userId: SYSTEM_USER_ID,
+      createdAt: new Date()
     };
 
-    const result = await collection.insertOne(newSchedule);
-    return NextResponse.json(serializeDocument(result));
-  }
-  catch (error) {
-    console.error('Error in POST /api/schedules:', error);
+    const result = await collection.insertOne(timetable);
+    const created = await collection.findOne({ _id: result.insertedId });
+
+    if (!created) {
+      return NextResponse.json(
+        { error: 'Failed to retrieve created timetable' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(serializeDocument(created));
+  } catch (error) {
+    console.error('Error in POST /api/timetables:', error);
     return NextResponse.json(
-      { error: 'Failed to create schedule' },
+      { error: 'Failed to create timetable entry' },
       { status: 500 }
     );
   }
@@ -86,7 +87,7 @@ export async function PUT(request: Request) {
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Schedule ID is required' },
+        { error: 'Timetable ID is required' },
         { status: 400 }
       );
     }
@@ -96,25 +97,13 @@ export async function PUT(request: Request) {
       objectId = new ObjectId(id);
     } catch (e) {
       return NextResponse.json(
-        { error: 'Invalid schedule ID format' },
+        { error: 'Invalid timetable ID format' },
         { status: 400 }
       );
     }
 
     const body = await request.json();
-    const collection = await getCollection('schedules');
-
-    // Validate and convert date if present
-    if (body.date && typeof body.date === 'string') {
-      const date = new Date(body.date);
-      if (isNaN(date.getTime())) {
-        return NextResponse.json(
-          { error: 'Invalid date format' },
-          { status: 400 }
-        );
-      }
-      body.date = date;
-    }
+    const collection = await getCollection('weekly_time_tables');
 
     const updateDoc = {
       ...body,
@@ -129,16 +118,16 @@ export async function PUT(request: Request) {
 
     if (!result) {
       return NextResponse.json(
-        { error: 'Schedule not found' },
+        { error: 'Timetable entry not found' },
         { status: 404 }
       );
     }
 
     return NextResponse.json(serializeDocument(result));
   } catch (error) {
-    console.error('Error in PUT /api/schedules:', error);
+    console.error('Error in PUT /api/timetables:', error);
     return NextResponse.json(
-      { error: 'Failed to update schedule' },
+      { error: 'Failed to update timetable entry' },
       { status: 500 }
     );
   }
@@ -151,7 +140,7 @@ export async function DELETE(request: Request) {
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Schedule ID is required' },
+        { error: 'Timetable ID is required' },
         { status: 400 }
       );
     }
@@ -161,26 +150,26 @@ export async function DELETE(request: Request) {
       objectId = new ObjectId(id);
     } catch (e) {
       return NextResponse.json(
-        { error: 'Invalid schedule ID format' },
+        { error: 'Invalid timetable ID format' },
         { status: 400 }
       );
     }
 
-    const collection = await getCollection('schedules');
+    const collection = await getCollection('weekly_time_tables');
     const result = await collection.deleteOne({ _id: objectId });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(
-        { error: 'Schedule not found' },
+        { error: 'Timetable entry not found' },
         { status: 404 }
       );
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/schedules:', error);
+    console.error('Error in DELETE /api/timetables:', error);
     return NextResponse.json(
-      { error: 'Failed to delete schedule' },
+      { error: 'Failed to delete timetable entry' },
       { status: 500 }
     );
   }

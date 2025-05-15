@@ -1,5 +1,3 @@
-// "use client";
-
 import { format, parseISO } from "date-fns";
 import {
   Table,
@@ -10,18 +8,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { TagConfigType, ScheduleWithCourse } from "@/types/schedule";
+import { ScheduleTableEntry } from "@/types/schedule";
 
 type ScheduleTableProps = {
-  schedule: ScheduleWithCourse[];
-  tagConfig: TagConfigType;
+  schedule: ScheduleTableEntry[];
   maxItems?: number;
 };
 
 export default function ScheduleTable({
   schedule,
-  tagConfig,
   maxItems = 0
 }: ScheduleTableProps) {
   const displayedSchedule = maxItems > 0 ? schedule.slice(0, maxItems) : schedule;
@@ -49,9 +44,9 @@ export default function ScheduleTable({
 
           return (
             <TableRow key={index}>
-              <TableCell>
-                {date && (
-                  ['Assignment', 'Project', 'CCP'].includes(item.tag)
+              <TableCell> 
+                {date ? (
+                  ['assignment', 'project', 'ccp'].includes(item.tagId)
                     ? (
                       <div>
                         {format(date, 'MMM dd, yyyy')}
@@ -61,14 +56,19 @@ export default function ScheduleTable({
                       </div>
                     )
                     : format(date, 'MMM dd, yyyy')
+                ) : (
+                  <div className="text-gray-500">No Date</div>
                 )}
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Badge className={cn(tagConfig[item.tag].bgColor, tagConfig[item.tag].textColor)}>
-                    {tagConfig[item.tag].title}
+                  <Badge style={{ 
+                    backgroundColor: `${item.tag.color}20`, // Using hex with 20 (12.5%) opacity
+                    color: item.tag.color 
+                  }}>
+                    {item.tag.title}
                   </Badge>
-                  {item.course?.name}
+                  {item.course.name}
                 </div>
               </TableCell>
               <TableCell className="whitespace-normal min-w-60">{item.description}</TableCell>

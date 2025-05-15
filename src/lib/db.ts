@@ -18,7 +18,7 @@ const MONGODB_DB = process.env.MONGODB_DB;
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
-async function connectToDatabase() {
+export async function connectToDatabase() {
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
   }
