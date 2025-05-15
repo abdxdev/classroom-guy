@@ -9,39 +9,51 @@ import {
   FunctionCall,
 } from '@google/genai';
 import * as scheduleLib from '@/lib/modelFunctions';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 import functionDeclarations from '@/data/functionDeclarations.json';
-import prevContents from '@/data/contents.json';
+import { getCollection, serializeDocument } from './db';
+import { ConversationMessage, Conversation, SYSTEM_USER_ID, SYSTEM_STUDENT_ID } from '@/types/db';
 
 const systemInstruction = readFileSync(path.join(process.cwd(), 'src/data/systemInstructions.md'), 'utf-8');
-const contentsPath = path.join(process.cwd(), 'src/data/contents.json');
 
-interface ConversationPart {
-  text?: string;
-  functionCall?: {
-    name: string;
-    args: Record<string, unknown>;
-  };
-  functionResponse?: {
-    name: string;
-    response: {
-      output: string;
-    };
-  };
-}
-
-interface ConversationMessage {
-  role: 'user' | 'model';
-  parts: ConversationPart[];
-}
-
-function saveContents(contents: ConversationMessage[]) {
+async function saveConversation(conversationId: string, messages: ConversationMessage[], completed: boolean = false) {
   try {
-    writeFileSync(contentsPath, JSON.stringify(contents, null, 2), 'utf-8');
+    const collection = await getCollection('conversations');
+    const now = new Date();
+    
+    await collection.updateOne(
+      { conversationId },
+      {
+        $set: {
+          messages,
+          completed,
+          updatedAt: now
+        },
+        $setOnInsert: {
+          userId: SYSTEM_USER_ID,
+          studentId: SYSTEM_STUDENT_ID,
+          createdAt: now,
+          summary: ''
+        }
+      },
+      { upsert: true }
+    );
   } catch (error) {
-    console.error('Failed to save conversation history:', error);
+    console.error('Failed to save conversation:', error);
+  }
+}
+
+async function getConversationHistory(conversationId: string): Promise<ConversationMessage[]> {
+  try {
+    const collection = await getCollection('conversations');
+    const conversation = await collection.findOne({ conversationId });
+    return conversation?.messages || [];
+  } catch (error) {
+    console.error('Failed to get conversation history:', error);
+    return [];
   }
 }
 
@@ -67,7 +79,32 @@ function convertToGeminiSchema(declaration: any): Tool {
   };
 }
 
-export async function handleScheduleCommand(query: string) {
+type HandleCommandResult = {
+  status: 'success' | 'error';
+  conversationId: string;
+  result: {
+    text?: string;
+    functionResponse?: {
+      name: string;
+      response: {
+        output: string;
+        error?: string;
+      };
+    };
+  };
+  error?: string;
+};
+
+type FunctionCallResponse = {
+  name: string;
+  response: {
+    output: string;
+    error?: string;
+  };
+};
+
+export async function handleCommand(query: string): Promise<HandleCommandResult> {
+  const conversationId = uuidv4();
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
   });
@@ -95,7 +132,6 @@ export async function handleScheduleCommand(query: string) {
       },
     ],
     tools,
-    responseMimeType: 'text/plain',
     systemInstruction: [
       {
         text: systemInstruction,
@@ -104,7 +140,7 @@ export async function handleScheduleCommand(query: string) {
   };
   const model = 'gemini-2.0-flash';
 
-  async function processResponse(aiResponse: any, conversationHistory: any[] = []): Promise<string | FunctionResponse> {
+  async function processResponse(aiResponse: any, conversationHistory: ConversationMessage[] = []): Promise<string | FunctionResponse> {
     if (aiResponse.functionCalls && aiResponse.functionCalls.length > 0) {
       console.log(aiResponse.text);
       const functionCall = aiResponse.functionCalls[0] as FunctionCall;
@@ -125,97 +161,108 @@ export async function handleScheduleCommand(query: string) {
         const functionResult = await scheduleFunction(functionCall.args);
         const output = typeof functionResult === 'string' ? functionResult : JSON.stringify(functionResult);
 
-        conversationHistory.push({
+        const modelMessage: ConversationMessage = {
           role: 'model',
           parts: [{
             functionResponse: {
               name: functionCall.name,
               response: { output }
             }
-          }],
-        });
+          }]
+        };
 
-        saveContents([...prevContents, ...conversationHistory]);
+        const updatedHistory = [...conversationHistory, modelMessage];
+        await saveConversation(conversationId, updatedHistory);
 
         const nextResponse = await ai.models.generateContent({
           config,
           model,
-          contents: [...prevContents, ...conversationHistory],
+          contents: updatedHistory,
         });
 
-        // Recursively process any subsequent function calls
-        return processResponse(nextResponse, conversationHistory);
+        return processResponse(nextResponse, updatedHistory);
 
       } catch (e: unknown) {
         const error = e instanceof Error ? e.message : 'An unknown error occurred';
         console.error(`Function execution error:`, error);
+        
+        const modelMessage: ConversationMessage = {
+          role: 'model',
+          parts: [{
+            functionResponse: {
+              name: functionCall.name || 'unknown',
+              response: { 
+                output: '',
+                error 
+              }
+            }
+          }]
+        };
+        
+        const updatedHistory = [...conversationHistory, modelMessage];
+        await saveConversation(conversationId, updatedHistory, true);
+        
         return {
-          name: functionCall.name,
-          response: { error }
+          name: functionCall.name || 'unknown',
+          response: { 
+            output: '',
+            error 
+          }
         };
       }
     } else if (aiResponse.text) {
+      const modelMessage: ConversationMessage = {
+        role: 'model',
+        parts: [{ text: aiResponse.text }]
+      };
+
+      const updatedHistory = [...conversationHistory, modelMessage];
+      await saveConversation(conversationId, updatedHistory, true);
       return aiResponse.text;
     }
-    return { response: { error: 'No response or function call received' } };
+
+    const error = 'No response or function call received';
+    await saveConversation(conversationId, conversationHistory, true);
+    return { response: { error } };
   }
 
-  const initialContents = [...prevContents, {
+  const initialHistory: ConversationMessage[] = [{
     role: 'user',
-    parts: [{ text: query }],
+    parts: [{ text: query }]
   }];
+
+  await saveConversation(conversationId, initialHistory);
 
   const response = await ai.models.generateContent({
     config,
     model,
-    contents: initialContents,
+    contents: initialHistory,
   });
 
-  const result = await processResponse(response);
+  const result = await processResponse(response, initialHistory);
   console.log('Final response:', result);
 
-  try {
-    // Save the updated conversation history
-    const updatedContents = [...initialContents];
-    if (typeof result === 'string') {
-      updatedContents.push({
-        role: 'model',
-        parts: [{ text: result }]
-      });
-    } else if ('name' in result && 'response' in result) {
-      updatedContents.push({
-        role: 'model',
-        parts: [{
-          functionResponse: {
-            name: result.name || 'unknown',
-            response: {
-              output: typeof result.response === 'string'
-                ? result.response
-                : JSON.stringify(result.response)
-            }
-          }
-        }]
-      });
-    }
-    saveContents(updatedContents);
-
-    // Format the response for the API
+  // Format the response for the API
+  if (typeof result === 'string') {
     return {
       status: 'success',
-      result: typeof result === 'string'
-        ? { text: result }
-        : {
-          functionResponse: {
-            name: result.name,
-            response: result.response
-          }
-        }
-    };
-  } catch (error) {
-    console.error('Error handling schedule command:', error);
-    return {
-      status: 'error',
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
+      conversationId,
+      result: { text: result }
     };
   }
+
+  const functionResponse = result as FunctionCallResponse;
+  return {
+    status: 'success',
+    conversationId,
+    result: {
+      functionResponse: {
+        name: functionResponse.name,
+        response: {
+          output: functionResponse.response.output || '',
+          error: functionResponse.response.error
+        }
+      }
+    }
+  };
 }

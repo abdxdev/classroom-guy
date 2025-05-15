@@ -1,4 +1,5 @@
 import { ValidTag } from "@/constants/tags";
+import { Course, Schedule } from "./db";
 
 export type TagConfigType = {
   [key in ValidTag]: {
@@ -8,12 +9,6 @@ export type TagConfigType = {
   }
 };
 
-export type ScheduleItem = {
-  _id?: string;
-  deadline: string | Date;
-  title: string;
-  tag: ValidTag;
-  notes?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
+export type ScheduleWithCourse = Schedule & {
+  course?: Omit<Course, '_id'> & { _id: string };
 };

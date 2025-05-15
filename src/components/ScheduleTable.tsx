@@ -1,3 +1,5 @@
+// "use client";
+
 import { format, parseISO } from "date-fns";
 import {
   Table,
@@ -9,10 +11,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { TagConfigType, ScheduleItem } from "@/types/schedule";
+import { TagConfigType, ScheduleWithCourse } from "@/types/schedule";
 
 type ScheduleTableProps = {
-  schedule: ScheduleItem[];
+  schedule: ScheduleWithCourse[];
   tagConfig: TagConfigType;
   maxItems?: number;
 };
@@ -38,12 +40,13 @@ export default function ScheduleTable({
         <TableRow>
           <TableHead>Date/Deadline</TableHead>
           <TableHead>Title</TableHead>
+          <TableHead>Course</TableHead>
           <TableHead>Notes</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {displayedSchedule.map((item, index) => {
-          const deadline = typeof item.deadline === 'string' ? parseISO(item.deadline) : item.deadline;
+          const deadline = typeof item.date === 'string' ? parseISO(item.date) : item.date;
           
           return (
             <TableRow key={index}>
@@ -69,7 +72,17 @@ export default function ScheduleTable({
                   {item.title}
                 </div>
               </TableCell>
-              <TableCell className="whitespace-normal min-w-60">{item.notes}</TableCell>
+              <TableCell>
+                {item.course && (
+                  <div className="text-sm">
+                    <div className="font-medium">{item.course.name}</div>
+                    <div className="text-gray-500">{item.course.code}</div>
+                  </div>
+                )}
+              </TableCell>
+              <TableCell className="whitespace-normal min-w-60">
+                {item.description}
+              </TableCell>
             </TableRow>
           );
         })}

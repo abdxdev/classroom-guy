@@ -11,15 +11,7 @@ import {
   parseISO
 } from 'date-fns';
 import { cn } from '@/lib/utils';
-
-interface ScheduleItem {
-  _id?: string;
-  deadline: string | Date;
-  tag?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-  [key: string]: unknown;
-}
+import { Schedule } from '@/types/db';
 
 interface DateHighlight {
   date: Date | string;
@@ -29,7 +21,15 @@ interface DateHighlight {
   meta?: unknown;
 }
 
-interface MonthlyCalendarsProps<T = ScheduleItem> {
+interface ScheduleWithCourse extends Schedule {
+  course?: {
+    name: string;
+    code: string;
+    description: string;
+  };
+}
+
+interface MonthlyCalendarsProps<T = ScheduleWithCourse> {
   schedule?: T[];
   tagConfig?: Record<string, { bgColor: string; textColor: string; title: string }>;
 
@@ -54,7 +54,7 @@ interface MonthlyCalendarsProps<T = ScheduleItem> {
 
 const getTailwindColor = (className?: string): string => {
   if (!className || typeof window === 'undefined') return 'transparent';
-  
+
   try {
     const tempDiv = document.createElement('div');
     tempDiv.className = className;
@@ -78,7 +78,7 @@ const useComputedColor = (className?: string) => {
   return color;
 };
 
-export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>({
+export default function MonthlyCalendars<T extends ScheduleWithCourse = ScheduleWithCourse>({
   schedule = [],
   tagConfig = {},
 
@@ -94,12 +94,12 @@ export default function MonthlyCalendars<T extends ScheduleItem = ScheduleItem>(
   renderDay,
 
   getDateFromItem = (item: T) => {
-    const deadline = item.deadline;
-    return typeof deadline === 'string' ? parseISO(deadline) : deadline;
+    return typeof item.date === 'string' ? parseISO(item.date) : item.date;
   },
   getHighlightFromItem = (item: T, date: Date) => ({
     date,
     className: item.tag && tagConfig[item.tag]?.bgColor,
+    tooltip: item.course?.name ? `${item.course.name} (${item.course.code})` : undefined,
     meta: item
   })
 }: MonthlyCalendarsProps<T>) {

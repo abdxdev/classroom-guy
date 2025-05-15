@@ -1,10 +1,11 @@
 "use client";
+
 import React, { useRef, useState, useEffect } from 'react';
 import ScalableCanvas from '@/components/ScalableCanvas';
 import Logo from '@/components/svg/logo';
 import MonthlyCalendars from '@/components/MonthlyCalendars';
-import { ScheduleItem } from '@/types/schedule';
-import ScheduleTable from '@/components/ScheduleTable'
+import { ScheduleWithCourse } from '@/types/schedule';
+import ScheduleTable from '@/components/ScheduleTable';
 import { handleExport } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { getSchedules } from '@/lib/modelFunctions';
@@ -13,7 +14,7 @@ import { TAG_CONFIG } from '@/constants/tags';
 
 export default function Home() {
   const captureRef = useRef<HTMLDivElement>(null);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleWithCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,10 +27,9 @@ export default function Home() {
     async function loadSchedules() {
       try {
         const data = await getSchedules();
-        // Sort schedule by deadline date, handling both Date objects and ISO strings
         const sortedData = [...data].sort((a, b) => {
-          const dateA = typeof a.deadline === 'string' ? parseISO(a.deadline) : a.deadline;
-          const dateB = typeof b.deadline === 'string' ? parseISO(b.deadline) : b.deadline;
+          const dateA = typeof a.date === 'string' ? parseISO(a.date) : a.date;
+          const dateB = typeof b.date === 'string' ? parseISO(b.date) : b.date;
           return dateA.getTime() - dateB.getTime();
         });
         setSchedule(sortedData);
