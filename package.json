@@ -2,6 +2,14 @@
   "name": "vstudent",
   "version": "0.0.1",
   "private": true,
+  "description": "AI-powered SaaS platform for student schedule management and course assistance",
+  "keywords": [
+    "saas",
+    "ai",
+    "education",
+    "student-management",
+    "scheduling"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:webpack": "next dev",
