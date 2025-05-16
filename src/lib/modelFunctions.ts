@@ -115,7 +115,7 @@ export async function updateScheduleCourseId({ scheduleId, courseId }: { schedul
 }
 
 export async function deleteSchedule({ scheduleId }: { scheduleId: string }): Promise<boolean> {
-  const response = await fetchApi<{ success: boolean }>('/api/schedules', { id: scheduleId }, { method: 'DELETE' });
+  const response = await fetchApi<{ success: boolean }>(`/api/schedules?id=${encodeURIComponent(scheduleId)}`, {}, { method: 'DELETE' });
   return response.success;
 }
 

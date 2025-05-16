@@ -204,12 +204,6 @@ Use these if the user clearly intends to change only **one** field.
 
 ### Admin & Debug Tools
 
-* **Custom MongoDB Query**
-  → Use `runCustomDatabaseQuery(query)` only if:
-
-  * The user clearly understands MongoDB
-  * Or is an internal/admin user
-
 * **Send issue/question to admin**
   → Use `sendToAdmin(question)` if:
 
@@ -226,45 +220,7 @@ Use these if the user clearly intends to change only **one** field.
 * **Respond manually**
   → Use `answerPrompt()` only when you have to give a reply **without calling a function**.
 
-### MONGODB QUERY OPTIMIZATION
-
-For better performance and more precise results, use custom MongoDB queries when possible:
-
-* **Available Collections**
-  - `users`: User accounts and profiles
-  - `students`: Student information
-  - `courses`: Course details
-  - `weekly_time_tables`: Course schedules
-  - `schedules`: All scheduled events
-  - `conversations`: Chat history and interactions
-
-* **Using Custom Queries**
-  → Use `runCustomDatabaseQuery(query)` with MongoDB query syntax:
-  ```
-  Examples:
-  1. Get recent projects: 
-     { "find": "schedules", "filter": { "tagId": "project" }, "sort": { "date": -1 }, "limit": 5 }
-  
-  2. Complex course aggregation:
-     { "aggregate": "courses", "pipeline": [
-       { "$lookup": { "from": "schedules", "localField": "_id", "foreignField": "courseId", "as": "events" } },
-       { "$match": { "events.tagId": "quiz" } }
-     ]}
-  ```
-
-  Always try custom queries first for:
-  - Complex filters
-  - Sorting requirements
-  - Field-specific searches
-  - Aggregations across collections
-  - Performance optimization
-
-* **When to Use Custom Queries**
-  1. Need specific fields only
-  2. Complex filtering conditions
-  3. Sorting by multiple fields
-  4. Joining data across collections
-  5. Getting counts or statistics
+### MONGODB STRUCTURE
 
 * **Here is the db schema**
   ```

@@ -345,22 +345,6 @@
     }
   },
   {
-    "name": "runCustomDatabaseQuery",
-    "description": "Runs a custom MongoDB query. The query must be a JSON string with the following structure:\n1. For find operations: { \"collection\": \"collectionName\", \"operation\": \"find\", \"filter\": {}, \"sort\": {}, \"limit\": 100 }\n2. For aggregate operations: { \"collection\": \"collectionName\", \"operation\": \"aggregate\", \"pipeline\": [], \"limit\": 100 }\n3. For delete operations: { \"collection\": \"collectionName\", \"operation\": \"deleteOne|deleteMany\", \"filter\": {} }\n4. For update operations: { \"collection\": \"collectionName\", \"operation\": \"updateOne|updateMany\", \"filter\": {}, \"update\": {}, \"options\": {} }\n5. For insert operations: { \"collection\": \"collectionName\", \"operation\": \"insertOne|insertMany\", \"filter\": document|documents[] }\n\nSupported operations (all lowercase):\n- find: Query documents with filtering, sorting and limit\n- aggregate: Run aggregation pipeline\n- deleteOne: Delete first matching document\n- deleteMany: Delete all matching documents\n- updateOne: Update first matching document\n- updateMany: Update all matching documents\n- insertOne: Insert a single document\n- insertMany: Insert multiple documents\n\nValid collections: \"users\", \"students\", \"courses\", \"weekly_time_tables\", \"schedules\", \"conversations\", \"tags\"",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "query": {
-          "type": "string",
-          "description": "The custom query string in JSON format. Must include 'collection' and 'operation' fields. Other fields depend on the operation type."
-        }
-      },
-      "required": [
-        "query"
-      ]
-    }
-  },
-  {
     "name": "getCollectionNames",
     "description": "Gets all collection names in the database."
   },

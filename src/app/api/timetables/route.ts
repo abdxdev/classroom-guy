@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCollection, serializeDocument } from '@/lib/db';
-import { TimeTableEntry, SYSTEM_USER_ID } from '@/types/db';
+import { SYSTEM_USER_ID } from '@/types/db';
 import { ObjectId } from 'mongodb';
 
 export async function GET() {
