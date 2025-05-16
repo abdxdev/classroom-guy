@@ -27,7 +27,7 @@ export async function POST() {
     // Return no content since we don't need to send a response
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error('Error in POST /api/prompts/ignore:', error);
+    console.error('Error in POST /api/prompts/ignorePrompt:', error);
     return NextResponse.json(
       { error: 'Failed to ignore prompt' },
       { status: 500 }

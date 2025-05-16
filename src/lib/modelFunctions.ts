@@ -16,7 +16,6 @@ async function fetchApi<T>(
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = new URL(normalizedEndpoint, baseUrl);
 
-  // For GET requests, add params to URL as query parameters
   if ((!options?.method || options.method === 'GET') && params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -34,7 +33,6 @@ async function fetchApi<T>(
     }
   };
 
-  // Only add body for non-GET requests
   if (params && options?.method && options.method !== 'GET') {
     fetchOptions.body = JSON.stringify(params);
   }
@@ -89,31 +87,15 @@ export async function getSchedulesBeforeDate({ date }: { date: string }): Promis
 }
 
 export async function createSchedule({ courseId, date, tagId, description }: { courseId: string; date: string; tagId: string; description: string }): Promise<Schedule> {
-  return fetchApi<Schedule>('/api/schedules', {
-    userId: SYSTEM_USER_ID,
-    courseId,
-    date,
-    tagId,
-    description
-  }, { method: 'POST' });
+  return fetchApi<Schedule>('/api/schedules', { userId: SYSTEM_USER_ID, courseId, date, tagId, description }, { method: 'POST' });
 }
 
 export async function addNewSchedule({ courseId, description, date, tagId }: { courseId: string; description: string; date: string; tagId: string }): Promise<Schedule> {
-  return createSchedule({
-    courseId,
-    date,
-    tagId,
-    description
-  });
+  return createSchedule({ courseId, date, tagId, description });
 }
 
 export async function updateSchedule({ scheduleId, description, date, tagId }: { scheduleId: string; description?: string; date?: string; tagId?: string }): Promise<Schedule | null> {
-  return fetchApi<Schedule>('/api/schedules', {
-    id: scheduleId,
-    description,
-    date,
-    tagId
-  }, { method: 'PUT' });
+  return fetchApi<Schedule>('/api/schedules', { id: scheduleId, description, date, tagId }, { method: 'PUT' });
 }
 
 export async function updateScheduleDescription({ scheduleId, description }: { scheduleId: string; description: string }): Promise<Schedule | null> {
@@ -129,15 +111,12 @@ export async function updateScheduleTagId({ scheduleId, tagId }: { scheduleId: s
 }
 
 export async function updateScheduleCourseId({ scheduleId, courseId }: { scheduleId: string; courseId: string }): Promise<Schedule | null> {
-  return fetchApi<Schedule>('/api/schedules', {
-    id: scheduleId,
-    courseId
-  }, { method: 'PUT' });
+  return fetchApi<Schedule>('/api/schedules', { id: scheduleId, courseId }, { method: 'PUT' });
 }
 
 export async function deleteSchedule({ scheduleId }: { scheduleId: string }): Promise<boolean> {
-  const result = await fetchApi<{ success: boolean }>('/api/schedules', { id: scheduleId }, { method: 'DELETE' });
-  return result.success;
+  const response = await fetchApi<{ success: boolean }>('/api/schedules', { id: scheduleId }, { method: 'DELETE' });
+  return response.success;
 }
 
 export async function getTimeTableByCourseId({ courseId }: { courseId: string }): Promise<TimeTableEntry[]> {
@@ -169,11 +148,11 @@ export async function getCollectionNames(): Promise<string[]> {
 }
 
 export async function runCustomDatabaseQuery({ query }: { query: string }): Promise<any> {
-  return fetchApi('/api/query', { query }, { method: 'POST' });
+  return fetchApi('/api/query', { query: JSON.parse(query) }, { method: 'POST' });
 }
 
 export async function sendToAdmin({ question }: { question: string }): Promise<void> {
-  await fetchApi('/api/admin/questions', { question }, { method: 'POST' });
+  await fetchApi('/api/prompts/askAdmin', { question }, { method: 'POST' });
 }
 
 export async function checkPreviousInteractions({ fromOtherUsers }: { fromOtherUsers: boolean }): Promise<any[]> {
@@ -185,9 +164,5 @@ export async function askUser({ question }: { question: string }): Promise<void>
 }
 
 export async function ignorePrompt(): Promise<void> {
-  await fetchApi('/api/prompts/ignore', {}, { method: 'POST' });
-}
-
-export async function answerPrompt(): Promise<void> {
-  await fetchApi('/api/prompts/answer', {}, { method: 'POST' });
+  await fetchApi('/api/prompts/ignorePrompt', {}, { method: 'POST' });
 }

@@ -4,41 +4,108 @@ import { getCollection, serializeDocument } from '@/lib/db';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    if (!body.query) {
-      return NextResponse.json(
-        { error: 'Query is required' },
-        { status: 400 }
-      );
+    const queryObject = body.query;
+    
+    if (!queryObject || typeof queryObject !== 'object') {
+      throw new Error('Invalid query format');
     }
-    let queryObject;
-    try {
-      queryObject = JSON.parse(body.query);
-    } catch (e) {
-      return NextResponse.json(
-        { error: 'Invalid query format' },
-        { status: 400 }
-      );
-    }
-    const { find, filter = {}, sort, limit = 100 } = queryObject;
 
-    if (!find) {
-      return NextResponse.json(
-        { error: 'Collection name (find) is required' },
-        { status: 400 }
-      );
-    }
-    const collection = await getCollection(find);
-    const result = await collection
-      .find(filter)
-      .sort(sort || {})
-      .limit(limit)
-      .toArray();
+    const { collection, operation, filter = {}, sort, limit = 100, pipeline, update, options = {} } = queryObject;
 
-    return NextResponse.json(result.map(doc => serializeDocument(doc)));
+    if (!collection) {
+      throw new Error('Collection name is required');
+    }
+
+    const dbCollection = await getCollection(collection as any);
+    console.log(`Operation: ${operation} on collection: ${collection}`);
+
+    let result;
+    switch (operation?.toLowerCase()) {
+      case 'find':
+        console.log('Find operation with filter:', filter);
+        result = await dbCollection
+          .find(filter)
+          .sort(sort || {})
+          .limit(limit)
+          .toArray();
+        console.log('Find operation result:', result);
+        return NextResponse.json(result.map(doc => serializeDocument(doc)));
+      
+      case 'aggregate':
+        if (!pipeline) {
+          throw new Error('Pipeline is required for aggregate operation');
+        }
+        console.log('Aggregate operation with pipeline:', pipeline);
+        result = await dbCollection
+          .aggregate(pipeline)
+          .limit(limit)
+          .toArray();
+        console.log('Aggregate operation result:', result);
+        return NextResponse.json(result.map(doc => serializeDocument(doc)));
+      
+      case 'deleteone':
+        console.log('DeleteOne operation with filter:', filter);
+        result = await dbCollection.deleteOne(filter);
+        console.log('DeleteOne operation result:', result);
+        return NextResponse.json({ deletedCount: result.deletedCount });
+      
+      case 'deletemany':
+        console.log('DeleteMany operation with filter:', filter);
+        result = await dbCollection.deleteMany(filter);
+        console.log('DeleteMany operation result:', result);
+        return NextResponse.json({ deletedCount: result.deletedCount });
+      
+      case 'updateone':
+        if (!update) {
+          throw new Error('Update document is required for update operation');
+        }
+        console.log('UpdateOne operation:', { filter, update, options });
+        result = await dbCollection.updateOne(filter, update, options);
+        console.log('UpdateOne operation result:', result);
+        return NextResponse.json({
+          matchedCount: result.matchedCount,
+          modifiedCount: result.modifiedCount,
+          upsertedId: result.upsertedId
+        });
+      
+      case 'updatemany':
+        if (!update) {
+          throw new Error('Update document is required for update operation');
+        }
+        console.log('UpdateMany operation:', { filter, update, options });
+        result = await dbCollection.updateMany(filter, update, options);
+        console.log('UpdateMany operation result:', result);
+        return NextResponse.json({
+          matchedCount: result.matchedCount,
+          modifiedCount: result.modifiedCount,
+          upsertedId: result.upsertedId
+        });
+      
+      case 'insertone':
+        if (!filter) {
+          throw new Error('Document to insert is required');
+        }
+        console.log('InsertOne operation document:', filter);
+        result = await dbCollection.insertOne(filter);
+        console.log('InsertOne operation result:', result);
+        return NextResponse.json({ insertedId: result.insertedId });
+      
+      case 'insertmany':
+        if (!Array.isArray(filter)) {
+          throw new Error('Array of documents is required for insertMany');
+        }
+        console.log('InsertMany operation documents:', filter);
+        result = await dbCollection.insertMany(filter);
+        console.log('InsertMany operation result:', result);
+        return NextResponse.json({ insertedIds: result.insertedIds });
+      
+      default:
+        throw new Error('Invalid operation. Supported operations are: find, aggregate, deleteOne, deleteMany, updateOne, updateMany, insertOne, insertMany');
+    }
   } catch (error) {
-    console.error('Error in POST /api/query:', error);
+    console.error('Error executing custom query:', error);
     return NextResponse.json(
-      { error: 'Failed to execute query' },
+      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
       { status: 500 }
     );
   }

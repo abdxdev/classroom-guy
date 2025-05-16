@@ -39,10 +39,6 @@ export default function Home() {
     loadSchedules();
   }, []);
 
-  const handleTest = () => {
-    import('@/lib/modelFunctions.test');
-  };
-
   const displayedSchedule = maxItems > 0 ? schedule.slice(0, maxItems) : schedule;
 
   if (loading) {
@@ -57,11 +53,11 @@ export default function Home() {
     <div className="flex flex-col items-center max-w-4xl mx-auto m-4 justify-between">
       <h1 className="text-2xl font-bold mb-4">📅 Schedule</h1>
       <div className="w-full h-0.25 bg-gray-200" />
-        {error ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4">
-            <div className="text-red-500 text-lg mb-3">{error}</div>
-          </div>
-        ) : displayedSchedule.length === 0 ? (
+      {error ? (
+        <div className="flex flex-col items-center justify-center py-12 px-4">
+          <div className="text-red-500 text-lg mb-3">{error}</div>
+        </div>
+      ) : displayedSchedule.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 px-4">
           <div className="text-6xl mb-6">🎉</div>
           <h2 className="text-2xl font-semibold mb-3">No Tasks Scheduled!</h2>
@@ -104,9 +100,6 @@ export default function Home() {
         <div className="flex gap-4 mt-4">
           <Button onClick={() => captureRef.current && handleExport(captureRef, 'schedule.png')}>
             Export Schedule
-          </Button>
-          <Button onClick={handleTest} variant="outline">
-            Run Tests
           </Button>
         </div>
       </div>

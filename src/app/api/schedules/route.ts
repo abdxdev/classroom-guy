@@ -12,6 +12,17 @@ export async function GET(request: NextRequest) {
       const res = collection.aggregate([
         {
           $lookup: {
+            from: "courses",
+            let: { courseId: { $toObjectId: "$courseId" } },
+            pipeline: [
+              { $match: { $expr: { $eq: ["$_id", "$$courseId"] } } }
+            ],
+            as: "course"
+          }
+        },
+        { $unwind: "$course" },
+        {
+          $lookup: {
             from: "tags",
             localField: "tagId",
             foreignField: "_id",
@@ -20,14 +31,8 @@ export async function GET(request: NextRequest) {
         },
         { $unwind: "$tag" },
         {
-          $lookup: {
-            from: "courses",
-            localField: "courseId",
-            foreignField: "_id",
-            as: "course",
-          },
-        },
-        { $unwind: "$course" },
+          $sort: { date: 1 }
+        }
       ]);
       const schedules = await res.toArray();
       return NextResponse.json(
@@ -99,8 +104,7 @@ export async function GET(request: NextRequest) {
       const schedules = await collection
       .find()
       .toArray();
-      
-      return NextResponse.json(
+        return NextResponse.json(
         schedules.map((schedule) => ({
           ...serializeDocument(schedule),
           date: schedule.date ? new Date(schedule.date) : null,

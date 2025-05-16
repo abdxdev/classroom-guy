@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { handleCommand } from '@/lib/model';
+import { handleCommand } from '@/lib/ai';
 import { getCollection } from '@/lib/db';
 import { Conversation } from '@/types/db';
 

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in POST /api/admin/questions:', error);
+    console.error('Error in POST /api/prompts/askAdmin:', error);
     return NextResponse.json(
       { error: 'Failed to send question to admin' },
       { status: 500 }
