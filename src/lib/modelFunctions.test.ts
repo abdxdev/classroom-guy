@@ -4,7 +4,7 @@ import {
   getScheduleById,
   getSchedulesByDateRange,
   getSchedulesByCourseId,
-  getSchedulesByTag,
+  getSchedulesByTagId,
   getSchedulesByDate,
   getSchedulesBeforeDate,
   
@@ -12,7 +12,7 @@ import {
   addNewSchedule,
   updateScheduleDescription,
   updateScheduleDate,
-  updateScheduleTag,
+  updateScheduleTagId,
   updateScheduleCourseId,
   updateSchedule,
   deleteSchedule,
@@ -56,11 +56,11 @@ async function runTests() {
   }
 
   try {
-    const schedulesByTag = await getSchedulesByTag('assignment');
-    console.log('Schedules by tag:', schedulesByTag);
-    console.log('✓ getSchedulesByTag');
+    const schedulesByTagId = await getSchedulesByTagId('assignment');
+    console.log('Schedules by tagId:', schedulesByTagId);
+    console.log('✓ getSchedulesByTagId');
   } catch (err) {
-    console.error('✕ getSchedulesByTag failed:', err instanceof Error ? err.message : err);
+    console.error('✕ getSchedulesByTagId failed:', err instanceof Error ? err.message : err);
   }
 
   try {
@@ -116,11 +116,11 @@ async function runTests() {
     }
 
     try {
-      const updatedTag = await updateScheduleTag(testScheduleId, 'project');
-      console.log('Updated tag:', updatedTag);
-      console.log('✓ updateScheduleTag');
+      const updatedTagId = await updateScheduleTagId(testScheduleId, 'project');
+      console.log('Updated tagId:', updatedTagId);
+      console.log('✓ updateScheduleTagId');
     } catch (err) {
-      console.error('✕ updateScheduleTag failed:', err instanceof Error ? err.message : err);
+      console.error('✕ updateScheduleTagId failed:', err instanceof Error ? err.message : err);
     }
 
     try {

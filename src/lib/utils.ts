@@ -6,19 +6,35 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const handleExport = async (captureRef: React.RefObject<HTMLDivElement | null>, filename: string) => {
-  if (!captureRef.current) return;
+interface ExportOptions {
+  width: number;
+  height: number;
+  style: {
+    transform: string;
+    width: string;
+    height: string;
+  };
+}
+
+export const handleExport = async (
+  captureRef: React.RefObject<HTMLDivElement | null>, 
+  filename: string
+): Promise<boolean> => {
+  if (!captureRef.current) {
+    console.error('Export failed: No element reference provided');
+    return false;
+  }
+  
   const element = captureRef.current;
   
   try {
-
-    const options = {
+    const options: ExportOptions = {
       width: element.clientWidth,
-      height: element.clientWidth,
+      height: element.clientHeight,
       style: {
-        'transform': 'none',
-        'width': `${element.clientWidth}px`,
-        'height': `${element.clientWidth}px`
+        transform: 'none',
+        width: `${element.clientWidth}px`,
+        height: `${element.clientHeight}px`
       }
     };
     
@@ -28,7 +44,16 @@ export const handleExport = async (captureRef: React.RefObject<HTMLDivElement | 
     link.download = filename;
     link.href = dataUrl;
     link.click();
+    return true;
   } catch (error) {
     console.error('Error exporting image:', error);
+    return false;
   }
 };
+
+export function modifyString(str: string, replace: Record<string, string | number>) {
+  return str.replace(/{{(.*?)}}/g, (_, key) => {
+    const trimmedKey = key.trim();
+    return replace[trimmedKey] !== undefined ? replace[trimmedKey].toString() : `{{${trimmedKey}}}`;
+  });
+}

@@ -50,7 +50,7 @@ export function serializeDocument<T extends Document>(doc: T): any {
   return serialized;
 }
 
-type validCollections = "users" | "students" | "courses" | "weekly_time_tables" | "schedules" | "conversations";
+type validCollections = "users" | "students" | "courses" | "weekly_time_tables" | "schedules" | "conversations" | "tags";
 
 export async function getCollection(name: validCollections) {
   const { db } = await connectToDatabase();

@@ -131,7 +131,7 @@
           "type": "string",
           "description": "Due date or scheduled date of the schedule (ISO format)."
         },
-        "tag": {
+        "tagId": {
           "type": "string",
           "enum": [
             "assignment",
@@ -143,24 +143,24 @@
             "project",
             "other"
           ],
-          "description": "Type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+          "description": "Type of schedule (e.g., 'assignment', 'quiz', 'exam')."
         }
       },
       "required": [
         "courseId",
         "date",
-        "tag",
+        "tagId",
         "description"
       ]
     }
   },
   {
-    "name": "getSchedulesByTag",
-    "description": "Gets all schedules that match a specific tag.",
+    "name": "getSchedulesByTagId",
+    "description": "Gets all schedules that match a specific tagId.",
     "parameters": {
       "type": "object",
       "properties": {
-        "tag": {
+        "tagId": {
           "type": "string",
           "enum": [
             "assignment",
@@ -172,11 +172,11 @@
             "project",
             "other"
           ],
-          "description": "Type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+          "description": "The tag to filter schedules by (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
         }
       },
       "required": [
-        "tag"
+        "tagId"
       ]
     }
   },
@@ -239,7 +239,7 @@
     }
   },
   {
-    "name": "updateScheduleTag",
+    "name": "updateScheduleTagId",
     "description": "Updates the tag of a schedule.",
     "parameters": {
       "type": "object",
@@ -248,7 +248,7 @@
           "type": "string",
           "description": "The ID of the schedule to update."
         },
-        "tag": {
+        "tagId": {
           "type": "string",
           "enum": [
             "assignment",
@@ -260,12 +260,12 @@
             "project",
             "other"
           ],
-          "description": "New type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+          "description": "New tag for the schedule (e.g., 'assignment', 'quiz', 'exam')."
         }
       },
       "required": [
         "scheduleId",
-        "tag"
+        "tagId"
       ]
     }
   },
@@ -308,7 +308,7 @@
           "type": "string",
           "description": "New date for the schedule (ISO format)."
         },
-        "tag": {
+        "tagId": {
           "type": "string",
           "enum": [
             "assignment",
@@ -320,7 +320,7 @@
             "project",
             "other"
           ],
-          "description": "New type of schedule (e.g., 'assignment', 'quiz', 'meeting', 'exam')."
+          "description": "New tag for the schedule (e.g., 'assignment', 'quiz', 'exam')."
         }
       },
       "required": [
@@ -403,10 +403,6 @@
   {
     "name": "ignorePrompt",
     "description": "Ignores a message from the user."
-  },
-  {
-    "name": "answerPrompt",
-    "description": "Answers a message from the user."
   },
   {
     "name": "checkPreviousInteractions",

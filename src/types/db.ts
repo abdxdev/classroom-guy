@@ -47,7 +47,7 @@ export interface Schedule extends BaseDocument {
 }
 
 export interface ConversationMessage {
-  role: 'user' | 'model';
+  role: 'user' | 'model' | 'function';
   parts: Array<{
     text?: string;
     functionCall?: {
@@ -62,6 +62,8 @@ export interface ConversationMessage {
       };
     };
   }>;
+
+  timestamp?: Date;
 }
 
 export interface Conversation extends BaseDocument {

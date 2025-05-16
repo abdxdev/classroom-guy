@@ -10,8 +10,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // Parse the query string into an object
     let queryObject;
     try {
       queryObject = JSON.parse(body.query);
@@ -21,21 +19,20 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    const { find, filter = {}, sort, limit = 100 } = queryObject;
 
-    // Extract collection name and operation
-    const collectionName = Object.keys(queryObject)[0] as 'schedules' | 'courses' | 'users' | 'students' | 'weekly_time_tables' | 'conversations';
-    const operation = queryObject[collectionName];
-
-    // Get the collection
-    const collection = await getCollection(collectionName);
-    
-    // Execute the query based on the operation
-    let result;
-    if (operation === 'find') {
-      result = await collection.find({}).limit(100).toArray();
-    } else {
-      result = await collection.find(operation).limit(100).toArray();
+    if (!find) {
+      return NextResponse.json(
+        { error: 'Collection name (find) is required' },
+        { status: 400 }
+      );
     }
+    const collection = await getCollection(find);
+    const result = await collection
+      .find(filter)
+      .sort(sort || {})
+      .limit(limit)
+      .toArray();
 
     return NextResponse.json(result.map(doc => serializeDocument(doc)));
   } catch (error) {

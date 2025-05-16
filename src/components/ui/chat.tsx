@@ -46,6 +46,10 @@ export function Chat({ className }: { className?: string }) {
         throw new Error(data.error || 'Failed to get AI response')
       }
 
+      if (data.result?.functionResponse?.name === 'ignorePrompt') {
+        return
+      }
+
       if (data.result.text) {
         setMessages(prev => [...prev, {
           role: "assistant",

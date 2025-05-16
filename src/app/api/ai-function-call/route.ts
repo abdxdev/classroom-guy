@@ -27,10 +27,9 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error('API Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    console.error('Error details:', errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 

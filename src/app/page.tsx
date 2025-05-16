@@ -9,7 +9,7 @@ import ScheduleTable from '@/components/ScheduleTable';
 import { handleExport } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Chat } from '@/components/ui/chat';
-import { getAllSchedules } from '@/lib/modelFunctions';
+import { getAllAggregatedSchedules } from '@/lib/modelFunctions';
 
 export default function Home() {
   const captureRef = useRef<HTMLDivElement>(null);
@@ -25,7 +25,8 @@ export default function Home() {
   useEffect(() => {
     async function loadSchedules() {
       try {
-        const data = await getAllSchedules();
+        const data = await getAllAggregatedSchedules();
+        console.log('Fetched schedules:', data);
         setSchedule(data);
       } catch (err) {
         console.error('Error loading schedules:', err);
@@ -52,24 +53,15 @@ export default function Home() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <div className="text-red-500 mb-4">⚠️ {error}</div>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
-      </div>
-    );
-  }
-
-  // if (!loading) {
-  //   console.log('Schedule:', schedule);
-  //   console.log(schedule[0].tag.bgColor);
-  // }
   const content = (
     <div className="flex flex-col items-center max-w-4xl mx-auto m-4 justify-between">
       <h1 className="text-2xl font-bold mb-4">📅 Schedule</h1>
       <div className="w-full h-0.25 bg-gray-200" />
-      {displayedSchedule.length === 0 ? (
+        {error ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="text-red-500 text-lg mb-3">{error}</div>
+          </div>
+        ) : displayedSchedule.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 px-4">
           <div className="text-6xl mb-6">🎉</div>
           <h2 className="text-2xl font-semibold mb-3">No Tasks Scheduled!</h2>
