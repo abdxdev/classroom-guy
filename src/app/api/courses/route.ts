@@ -1,34 +1,97 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getCollection, serializeDocument } from '@/lib/db';
-import { ObjectId } from 'mongodb';
+import { apiResponse, handleApiError, validateObjectId } from '@/lib/api';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = request.nextUrl.searchParams.get('id');
     const collection = await getCollection('courses');
 
     if (id) {
-      try {
-        const query = { _id: new ObjectId(id) };
-        const course = await collection.findOne(query);
-        if (!course) {
-          return NextResponse.json(null);
-        }
-        return NextResponse.json(serializeDocument(course));
-      } catch (e) {
-        return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+      const objectId = validateObjectId(id);
+      if ('error' in objectId) return objectId;
+
+      const course = await collection.findOne({ _id: objectId });
+      if (!course) {
+        return apiResponse(null);
       }
+      return apiResponse(serializeDocument(course));
     }
 
     const courses = await collection.find().toArray();
-    return NextResponse.json(courses.map(course => serializeDocument(course)));
-
+    return apiResponse(courses.map(course => serializeDocument(course)));
   } catch (error) {
-    console.error('Error in GET /api/courses:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch courses' },
-      { status: 500 }
+    return handleApiError(error, 'GET /api/courses');
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const collection = await getCollection('courses');
+    
+    const result = await collection.insertOne({
+      ...body,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    const created = await collection.findOne({ _id: result.insertedId });
+    if (!created) {
+      return apiResponse('Failed to retrieve created course', 500);
+    }
+
+    return apiResponse(serializeDocument(created));
+  } catch (error) {
+    return handleApiError(error, 'POST /api/courses');
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const id = request.nextUrl.searchParams.get('id');
+    const objectId = validateObjectId(id);
+    if ('error' in objectId) return objectId;
+
+    const body = await request.json();
+    const collection = await getCollection('courses');
+
+    const result = await collection.findOneAndUpdate(
+      { _id: objectId },
+      { 
+        $set: {
+          ...body,
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
     );
+
+    if (!result) {
+      return apiResponse('Course not found', 404);
+    }
+
+    return apiResponse(serializeDocument(result));
+  } catch (error) {
+    return handleApiError(error, 'PUT /api/courses');
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const id = request.nextUrl.searchParams.get('id');
+    const objectId = validateObjectId(id);
+    if ('error' in objectId) return objectId;
+
+    const collection = await getCollection('courses');
+    const result = await collection.deleteOne({ _id: objectId });
+
+    if (result.deletedCount === 0) {
+      return apiResponse('Course not found', 404);
+    }
+
+    return apiResponse({ success: true });
+  } catch (error) {
+    return handleApiError(error, 'DELETE /api/courses');
   }
 }

@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { MODEL_NAME, initializeAI } from './config';
 import { getToolDefinitions } from './schema';
-import { processResponse, FunctionCallResponse } from './response';
+import { processResponse } from './response';
 import { getIncompleteConversation, getPreviousMessages, saveConversation } from '../conversations';
 import type { ConversationMessage } from '@/types/db';
 
-export type HandleCommandResult = {
+type HandleCommandResult = {
   status: 'success' | 'error';
   conversationId: string;
   result: {
@@ -21,9 +21,17 @@ export type HandleCommandResult = {
   error?: string;
 };
 
+type FunctionCallResponse = {
+  name: string;
+  response: {
+    output: string;
+    error?: string;
+  };
+};
+
 export async function handleCommand(query: string): Promise<HandleCommandResult> {
   console.log('Handling AI command:', query);
-  
+
   const incompleteConversation = await getIncompleteConversation();
   const previousMessages = await getPreviousMessages();
   const conversationId = incompleteConversation?.conversationId || uuidv4();
@@ -31,26 +39,14 @@ export async function handleCommand(query: string): Promise<HandleCommandResult>
   const { ai, config } = await initializeAI();
   config.tools = getToolDefinitions();
 
-  let initialHistory: ConversationMessage[];
-
-  if (incompleteConversation) {
-    initialHistory = [
-      ...previousMessages,
-      ...incompleteConversation.messages,
-      {
-        role: 'user',
-        parts: [{ text: query }]
-      }
-    ];
-  } else {
-    initialHistory = [
-      ...previousMessages,
-      {
-        role: 'user',
-        parts: [{ text: query }]
-      }
-    ];
-  }
+  const initialHistory: ConversationMessage[] = [
+    ...previousMessages,
+    ...(incompleteConversation?.messages || []),
+    {
+      role: 'user',
+      parts: [{ text: query }]
+    }
+  ];
 
   await saveConversation(conversationId, initialHistory);
 

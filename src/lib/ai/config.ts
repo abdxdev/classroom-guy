@@ -5,8 +5,7 @@ import { modifyString } from '@/lib/utils';
 import { getCollection } from '@/lib/db';
 import dbSchema from '@/data/db.schema.json';
 
-// Initialize current state
-export const getCurrentState = async () => {
+const getCurrentState = async () => {
   let currentCourses: Record<string, string> = {};
   const courseColl = await getCollection('courses');
   const courses = await courseColl.find({}).toArray();
@@ -37,8 +36,7 @@ export const getCurrentState = async () => {
   return { currentCourses, currentTags, currentSchedules };
 };
 
-// Initialize system instructions
-export const getSystemInstruction = async () => {
+const getSystemInstruction = async () => {
   const state = await getCurrentState();
   const systemInstruction = readFileSync(path.join(process.cwd(), 'src/data/systemInstructions.md'), 'utf-8');
   return modifyString(systemInstruction, {
@@ -61,7 +59,7 @@ export const initializeAI = async () => {
 
   const config: GenerateContentConfig = {
     maxOutputTokens: 500,
-    temperature: 0,
+    temperature: 2,
     systemInstruction: [
       {
         text: await getSystemInstruction(),

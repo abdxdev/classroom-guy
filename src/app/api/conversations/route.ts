@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
-import { getCollection } from '@/lib/db';
-import { ConversationMessage, SYSTEM_USER_ID, SYSTEM_STUDENT_ID } from '@/types/db';
+import { NextRequest } from 'next/server';
+import { getCollection, serializeDocument } from '@/lib/db';
+import { SYSTEM_USER_ID, SYSTEM_STUDENT_ID } from '@/types/db';
+import { apiResponse, handleApiError } from '@/lib/api';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const limit = Number(searchParams.get('limit')) || 10;
     const completed = searchParams.get('completed') === 'true';
     const newest = searchParams.get('newest') === 'true';
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
 
     if (newest) {
       const conversation = await collection.findOne(query, { sort: { updatedAt: -1 } });
-      return NextResponse.json(conversation || null);
+      return apiResponse(conversation);
     }
 
     const conversations = await collection
@@ -27,26 +28,19 @@ export async function GET(request: Request) {
       .limit(limit)
       .toArray();
 
-    return NextResponse.json(conversations);
+    return apiResponse(conversations.map(conv => serializeDocument(conv)));
   } catch (error) {
-    console.error('Error in GET /api/conversations:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'GET /api/conversations');
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { conversationId, messages, completed = false } = body;
 
     if (!conversationId || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: 'Invalid request format' },
-        { status: 400 }
-      );
+      return apiResponse('Invalid request format', 400);
     }
 
     const collection = await getCollection('conversations');
@@ -70,15 +64,11 @@ export async function POST(request: Request) {
       { upsert: true }
     );
 
-    return NextResponse.json({
+    return apiResponse({
       success: true,
       upsertedId: result.upsertedId
     });
   } catch (error) {
-    console.error('Error in POST /api/conversations:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'POST /api/conversations');
   }
 }

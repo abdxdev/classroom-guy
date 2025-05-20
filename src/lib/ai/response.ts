@@ -3,14 +3,6 @@ import * as scheduleLib from '@/lib/modelFunctions';
 import { ConversationMessage } from '@/types/db';
 import { saveConversation } from '../conversations';
 
-export type FunctionCallResponse = {
-  name: string;
-  response: {
-    output: string;
-    error?: string;
-  };
-};
-
 export async function processResponse(
   aiResponse: any, 
   conversationId: string,

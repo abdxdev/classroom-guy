@@ -1,17 +1,12 @@
-import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
+import { apiResponse, handleApiError } from '@/lib/api';
 
 export async function GET() {
   try {
     const { db } = await connectToDatabase();
     const collections = await db.listCollections().toArray();
-    const collectionNames = collections.map(col => col.name);
-    return NextResponse.json(collectionNames);
+    return apiResponse(collections.map(col => col.name));
   } catch (error) {
-    console.error('Error in GET /api/collections:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch collections' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'GET /api/collections');
   }
 }

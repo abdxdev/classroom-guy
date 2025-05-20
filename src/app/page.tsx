@@ -27,10 +27,11 @@ export default function Home() {
       try {
         const data = await getAllAggregatedSchedules();
         console.log('Fetched schedules:', data);
-        setSchedule(data);
+        setSchedule(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error loading schedules:', err);
         setError('Failed to load schedules');
+        setSchedule([]);
       } finally {
         setLoading(false);
       }
@@ -39,7 +40,7 @@ export default function Home() {
     loadSchedules();
   }, []);
 
-  const displayedSchedule = maxItems > 0 ? schedule.slice(0, maxItems) : schedule;
+  const displayedSchedule = maxItems > 0 && Array.isArray(schedule) ? schedule.slice(0, maxItems) : schedule;
 
   if (loading) {
     return (

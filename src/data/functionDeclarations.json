@@ -44,7 +44,7 @@
     }
   },
   {
-    "name": "getScheduleByScheduleId",
+    "name": "getScheduleById",
     "description": "Gets the schedule for a specific schedule by its ID.",
     "parameters": {
       "type": "object",
@@ -60,8 +60,8 @@
     }
   },
   {
-    "name": "getSlotAfter",
-    "description": "Gets the next available date slot for a specific course.",
+    "name": "getSlot",
+    "description": "Gets the available date slot for a specific course. It uses weekly schedule to find the next or previous available slot.",
     "parameters": {
       "type": "object",
       "properties": {
@@ -71,12 +71,21 @@
         },
         "date": {
           "type": "string",
-          "description": "The date to check for the next available slot (ISO date)."
+          "description": "The date to check for the available slot (ISO date)."
+        },
+        "slotType": {
+          "type": "string",
+          "enum": [
+            "next",
+            "previous"
+          ],
+          "description": "Specifies whether to check for the next or previous available slot."
         }
       },
       "required": [
         "courseId",
-        "date"
+        "date",
+        "slotType"
       ]
     }
   },
@@ -95,22 +104,6 @@
           "description": "The end date of the range in ISO format (YYYY-MM-DD)."
         }
       }
-    }
-  },
-  {
-    "name": "getSchedulesBeforeDate",
-    "description": "Gets all schedules that are scheduled before a specific date.",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "date": {
-          "type": "string",
-          "description": "The date to filter schedules by (ISO format)."
-        }
-      },
-      "required": [
-        "date"
-      ]
     }
   },
   {
@@ -394,13 +387,18 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "fromOtherUsers": {
+        "fromOthers": {
           "type": "boolean",
           "description": "Whether the interaction is from another user."
+        },
+        "n": {
+          "type": "integer",
+          "description": "The number of previous interactions to check."
         }
       },
       "required": [
-        "fromOtherUsers"
+        "fromOthers",
+        "n"
       ]
     }
   },

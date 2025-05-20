@@ -1,113 +1,85 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getCollection, serializeDocument } from '@/lib/db';
 import { SYSTEM_USER_ID } from '@/types/db';
-import { ObjectId } from 'mongodb';
+import { apiResponse, handleApiError, validateObjectId } from '@/lib/api';
 
 export async function GET() {
   try {
     const collection = await getCollection('weekly_time_tables');
-    const res = collection.aggregate([
-      {
-        $lookup: {
-          from: "courses",
-          localField: "courseId",
-          foreignField: "_id",
-          as: "course",
-        },
-      },
-      { $unwind: "$course" },
-    ]);
-    const timetables = await res.toArray();
-    return NextResponse.json(
-      timetables.map((timetable) => {
-        const serializedTimetable = serializeDocument(timetable);
-        return {
-          ...serializedTimetable,
-          course: {
-            ...serializedTimetable.course,
-            _id: serializedTimetable.course._id.toString(),
+    const result = await collection
+      .aggregate([
+        {
+          $lookup: {
+            from: 'courses',
+            localField: 'courseId',
+            foreignField: '_id',
+            as: 'course',
           },
-        };
-      })
+        },
+        { $unwind: '$course' },
+      ])
+      .toArray();
+
+    return apiResponse(
+      result.map((timetable) => ({
+        ...serializeDocument(timetable),
+        course: {
+          ...serializeDocument(timetable.course),
+          _id: timetable.course._id.toString(),
+        },
+      }))
     );
   } catch (error) {
-    console.error('Error in GET /api/timetables:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch schedules' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'GET /api/timetables');
   }
 }
 
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const collection = await getCollection('weekly_time_tables');
 
-    // Validate required fields
-    if (!body.courseId || !body.day || !body.startTime || !body.endTime || !body.location) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    if (
+      !body.courseId ||
+      !body.day ||
+      !body.startTime ||
+      !body.endTime ||
+      !body.location
+    ) {
+      return apiResponse('Missing required fields', 400);
     }
 
-    // Add system fields
+    const collection = await getCollection('weekly_time_tables');
     const timetable = {
       ...body,
       userId: SYSTEM_USER_ID,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     const result = await collection.insertOne(timetable);
     const created = await collection.findOne({ _id: result.insertedId });
 
     if (!created) {
-      return NextResponse.json(
-        { error: 'Failed to retrieve created timetable' },
-        { status: 500 }
-      );
+      return apiResponse('Failed to retrieve created timetable', 500);
     }
 
-    return NextResponse.json(serializeDocument(created));
+    return apiResponse(serializeDocument(created));
   } catch (error) {
-    console.error('Error in POST /api/timetables:', error);
-    return NextResponse.json(
-      { error: 'Failed to create timetable entry' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'POST /api/timetables');
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Timetable ID is required' },
-        { status: 400 }
-      );
-    }
-
-    let objectId: ObjectId;
-    try {
-      objectId = new ObjectId(id);
-    } catch (e) {
-      return NextResponse.json(
-        { error: 'Invalid timetable ID format' },
-        { status: 400 }
-      );
-    }
+    const id = request.nextUrl.searchParams.get('id');
+    const objectId = validateObjectId(id);
+    if ('error' in objectId) return objectId;
 
     const body = await request.json();
     const collection = await getCollection('weekly_time_tables');
 
     const updateDoc = {
       ...body,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     const result = await collection.findOneAndUpdate(
@@ -117,60 +89,30 @@ export async function PUT(request: Request) {
     );
 
     if (!result) {
-      return NextResponse.json(
-        { error: 'Timetable entry not found' },
-        { status: 404 }
-      );
+      return apiResponse('Timetable entry not found', 404);
     }
 
-    return NextResponse.json(serializeDocument(result));
+    return apiResponse(serializeDocument(result));
   } catch (error) {
-    console.error('Error in PUT /api/timetables:', error);
-    return NextResponse.json(
-      { error: 'Failed to update timetable entry' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'PUT /api/timetables');
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Timetable ID is required' },
-        { status: 400 }
-      );
-    }
-
-    let objectId: ObjectId;
-    try {
-      objectId = new ObjectId(id);
-    } catch (e) {
-      return NextResponse.json(
-        { error: 'Invalid timetable ID format' },
-        { status: 400 }
-      );
-    }
+    const id = request.nextUrl.searchParams.get('id');
+    const objectId = validateObjectId(id);
+    if ('error' in objectId) return objectId;
 
     const collection = await getCollection('weekly_time_tables');
     const result = await collection.deleteOne({ _id: objectId });
 
     if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { error: 'Timetable entry not found' },
-        { status: 404 }
-      );
+      return apiResponse('Timetable entry not found', 404);
     }
 
-    return NextResponse.json({ success: true });
+    return apiResponse({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/timetables:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete timetable entry' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'DELETE /api/timetables');
   }
 }

@@ -1,34 +1,39 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getCollection } from '@/lib/db';
 import { SYSTEM_USER_ID } from '@/types/db';
+import { apiResponse, handleApiError } from '@/lib/api';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { question } = body;
-
+    
     if (!question) {
-      return NextResponse.json(
-        { error: 'Question is required' },
-        { status: 400 }
-      );
+      return apiResponse('Question is required', 400);
     }
 
     const collection = await getCollection('conversations');
-    await collection.insertOne({
+    const existing = await collection.findOne({
       userId: SYSTEM_USER_ID,
-      question,
-      type: 'admin',
-      createdAt: new Date(),
-      status: 'pending'
+      completed: false,
+      status: { $ne: 'ignored' }
     });
 
-    return NextResponse.json({ success: true });
+    if (existing) {
+      return apiResponse('There is already an active conversation', 400);
+    }
+
+    const conversation = {
+      userId: SYSTEM_USER_ID,
+      messages: [{ role: 'user', content: question }],
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await collection.insertOne(conversation);
+    return apiResponse({ success: true, id: result.insertedId });
   } catch (error) {
-    console.error('Error in POST /api/prompts/askAdmin:', error);
-    return NextResponse.json(
-      { error: 'Failed to send question to admin' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'POST /api/prompts/askAdmin');
   }
 }

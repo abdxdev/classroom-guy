@@ -1,36 +1,30 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getCollection } from '@/lib/db';
 import { SYSTEM_USER_ID } from '@/types/db';
+import { apiResponse, handleApiError } from '@/lib/api';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const collection = await getCollection('conversations');
-    
-    // Save the ignored status in the conversation
-    await collection.findOneAndUpdate(
-      { 
+    const result = await collection.updateMany(
+      {
         userId: SYSTEM_USER_ID,
-        completed: false 
+        completed: false,
+        status: { $ne: 'ignored' }
       },
-      { 
-        $set: { 
+      {
+        $set: {
           status: 'ignored',
-          completed: true,
           updatedAt: new Date()
-        } 
-      },
-      { 
-        sort: { updatedAt: -1 }
+        }
       }
     );
 
-    // Return no content since we don't need to send a response
-    return new Response(null, { status: 204 });
+    return apiResponse({ 
+      success: true,
+      ignored: result.modifiedCount 
+    });
   } catch (error) {
-    console.error('Error in POST /api/prompts/ignorePrompt:', error);
-    return NextResponse.json(
-      { error: 'Failed to ignore prompt' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'POST /api/prompts/ignorePrompt');
   }
 }
